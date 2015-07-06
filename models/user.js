@@ -7,6 +7,10 @@ module.exports = function(mongoose) {
             }
         },
         pixel: {
+            _id: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Pixel'
+            },
             x: {
                 type: Number
             },
