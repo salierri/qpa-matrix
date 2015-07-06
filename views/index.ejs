@@ -1,0 +1,56 @@
+ <!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" /> 
+        <title>Mátrix Game</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script>
+            function changeColor() {
+                var r = document.getElementById("red").value;
+                var g = document.getElementById("green").value;
+                var b = document.getElementById("blue").value;;
+                var color = document.getElementById("colorRow");
+                color.style.backgroundColor="rgb(" + r + "," + g + "," + b + ")";
+            }
+            var idleTime = 0;
+            $(document).ready(function () {
+                //Increment the idle time counter every minute.
+                var idleInterval = setInterval(timerIncrement, 10000); // 1 minute
+
+                //Zero the idle timer on mouse movement.
+                $(this).mousemove(function (e) {
+                    idleTime = 0;
+                });
+                $(this).keypress(function (e) {
+                    idleTime = 0;
+                });
+            });
+
+            function timerIncrement() {
+                idleTime = idleTime + 1;
+                if (idleTime > 19) { // 20 minutes
+                    window.location.reload();
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <table border="2">
+            <tr>
+                <td id="colorRow" colspan="2" height="200" bgColor="#808080"></td>
+            </tr>
+            <tr>
+                <td>piros:</td>
+                <td><input type="range" id="red" min = "0" max="255" step="1" onchange="changeColor()"/></td>
+            </tr>
+            <tr>
+                <td>zöld:</td>
+                <td><input type="range" id="green" min = "0" max="255" onchange="changeColor()"/></td>
+            </tr>
+            <tr>
+                <td>kék:</td>
+                <td><input type="range" id="blue" min = "0" max="255" onchange="changeColor()"/></td>
+            </tr>
+        </table>
+    </body>
+</html> 
