@@ -5,8 +5,9 @@ var path = require('path');
 var app = express();
 var _ = require("lodash");
 var bodyparser = require("body-parser");
-var _index = require("../../routes/index.js");
 var requestlogger = require("../middlewares/requestlogger");
+var _index = require("../../routes/index");
+var _pixels = require("../../routes/pixels");
 
 var json_only = function(req, res, next) {
         res.setHeader("Content-Type", "application/json");
@@ -17,16 +18,20 @@ exports.createCore = function(dal, config) {
     GLOBAL.dal = dal;
     GLOBAL.config = config;
 
+    app.set('port', config.port);
+    app.set('views', path.join(__dirname, '../../views'));
+    app.use(express.static(path.join(__dirname, '../../public')));
+    app.set('view engine', 'ejs');
 
     //Initial Express setup
     app.use(requestlogger.logrequest(config));
-    app.use(json_only);
-    app.set('port', config.port);
+    //app.use(json_only);
     app.use(bodyparser.json());
-
     app.use(bodyparser.urlencoded({extended: true}));
 
-    app.use(_index(dal));
+
+    app.use('/', _index(dal));
+    app.use('/pixels', _pixels(dal, config));
 
     http.createServer(app).listen(app.get('port'), function() {
         console.log("Core started on port " + app.get('port'));

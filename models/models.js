@@ -1,7 +1,9 @@
 /* Create models from schemas. */
 
-var _admin_user = require('./user');
+var _user = require('./user');
+var _pixel = require('./pixel');
 
 module.exports = function(mongoose) {
-    _admin_user(mongoose);
+    _user(mongoose);
+    _pixel(mongoose);
 };

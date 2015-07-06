@@ -7,5 +7,9 @@ var config = {
     mongo: {
         path: "mongodb://localhost/matrix",
     },
+    size: {
+        x: 5,
+        y: 5
+    }
 };
 module.exports = config;
