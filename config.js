@@ -10,6 +10,7 @@ var config = {
     size: {
         x: 5,
         y: 5
-    }
+    },
+    reallocateTimer: 30000
 };
 module.exports = config;

@@ -17,6 +17,17 @@ module.exports = function(mongoose) {
         },
         reserved: {
             type: Boolean
+        },
+        color: {
+            r: {
+                type: Number
+            },
+            g: {
+                type: Number
+            },
+            b: {
+                type: Number
+            }
         }
     });
 

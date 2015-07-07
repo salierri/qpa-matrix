@@ -6,16 +6,9 @@ module.exports = function(mongoose) {
                 return new mongoose.Types.ObjectId();
             }
         },
-        pixel: {
-            x: {
-                type: Number
-            },
-            y: {
-                type: Number
-            },
-            wholeWindow: {
-                type: Boolean
-            }
+        _pixel: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Pixel'
         },
         hasPixel: {
             type: Boolean
