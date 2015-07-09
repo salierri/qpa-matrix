@@ -16,6 +16,10 @@ module.exports = function(mongoose) {
         timer: {
             type: Date,
             default: Date.now
+        },
+        lastUpdate: {
+            type: Date,
+            default: Date.now
         }
     });
 
