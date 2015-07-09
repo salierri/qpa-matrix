@@ -3,13 +3,13 @@ var express = require('express');
 var router = express.Router();
 var sessioncheck = require('../modules/middlewares/sessioncheck');
 
-module.exports = function (dal) {
+module.exports = function (dal, config, reallocator) {
 
     router.post('/keepalive', sessioncheck, function (req, res) {
     	console.log("User keepalive: " + req.user._id);
         req.user.lastUpdate = Date.now();
         req.user.save(function (err, doc) {
-        	res.send(JSON.stringify({status: "success"}));
+        	res.send(JSON.stringify({status: "success", hasPixel: req.user.hasPixel, nextRealloc: reallocator.when()}));
         });
     });
 

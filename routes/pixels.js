@@ -11,7 +11,7 @@ module.exports = function (dal, config, reallocator) {
                 if(emptyCount === 0) {
                     reallocator.needRealloc();
                     new dal.User({hasPixel: false}).save(function (err, user) {
-                        res.send(JSON.stringify({status: "queue", nextRealloc: reallocator.timer - Date.now(), session: user._id}));
+                        res.send(JSON.stringify({status: "queue", nextRealloc: reallocator.when(), session: user._id}));
                     });
                 } else {
                     var number = Math.floor(Math.random() * emptyCount);
@@ -55,13 +55,13 @@ module.exports = function (dal, config, reallocator) {
     router.post('/update', sessioncheck, function (req, res) {
         var color = req.body.color;
         if(!req.user.hasPixel) {
-            res.send(JSON.stringify({status: "error"}));
+            res.send(JSON.stringify({status: "nopixel", nextRealloc: reallocator.when()}));
         } else {
             dal.User.update({_id: req.user._id}, {lastUpdate: Date.now()}, function (err, doc){});
             dal.Pixel.findOne({_id: req.user._pixel}, function (err, doc) {
                 doc.color = color;
                 doc.save(function (err, doc) {
-                    res.send(JSON.stringify({status: "success"}));
+                    res.send(JSON.stringify({status: "success", nextRealloc: reallocator.when()}));
                 });
             });
         }
