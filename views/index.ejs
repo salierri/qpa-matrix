@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" /> 
         <title>Mátrix Game</title>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script src="jquery.min.js"></script>
         <script>
             function changeColor() {
                 var r = document.getElementById("red").value;
@@ -21,17 +21,35 @@
             $(document).ready(function () {
             
                 
-                //Increment the idle time counter every minute.
                 var idleInterval = setInterval(timerIncrement, 60000);
                 var countdownInterval = setInterval(timerDecrement, 1000);
                 
 
                 //Zero the idle timer on mouse movement.
                 $(this).mousemove(function (e) {
+                    if(idleTime === 1) {
+                        keepalive();
+                    }
+                    
                     idleTime = 0;
                 });
+                
                 $(this).keypress(function (e) {
+                    if(idleTime === 1) {
+                        keepalive();
+                    }
                     idleTime = 0;
+                    
+                });
+                
+                $(window).bind('beforeunload', function () {
+                    var session = localStorage.getItem("session");
+                    $.ajax({
+                        type: "POST",
+                        url: "/connection/drop",
+                        contentType: "application/json",
+                        data: JSON.stringify({"session": session})
+                    });
                 });
                 
                 $.ajax({
@@ -39,14 +57,13 @@
                     url: "/pixels/reserve",
                     contentType: "application/json",
                     success: function(response){
-                        //alert(response);
                         processResponse(response, "initial");
                 }});
             });
             
             function processResponse(response, requestType) {
                 var data = JSON.parse(response);
-                alert(response);
+                //alert(response);
                 if(data.status === "reserved" || data.status === "haspixel") {
                     document.getElementById("red").value = data.pixel.color.r;
                     document.getElementById("green").value = data.pixel.color.g;
@@ -68,7 +85,6 @@
                     if(requestType === "initial") {
                         localStorage.setItem("session", data.session);
                     }
-                    //alert("kaka");
                 } else if (data.status === "queue") {
                     countdown = Math.ceil(data.nextRealloc / 1000);
                     isCountdown = true;
@@ -87,9 +103,18 @@
                 }
             }
             
+            function keepalive() {
+                $.ajax({
+                    type: "POST",
+                    url: "/connection/keepalive",
+                    contentType: "application/json",
+                    data: JSON.stringify({"session": session})
+                });
+            }
+            
             function timerIncrement() {
                 idleTime = idleTime + 1;
-                if (idleTime === 100) {
+                if (idleTime === 2) {
                     alert("mozogjá!");
                 }
             }
@@ -99,16 +124,15 @@
                     countdown = countdown - 1;
                     document.getElementById("countdownLocation").innerHTML = '<p style="font-size:100px">' + countdown +'</p>';
                     if (countdown === 0) {
-                        //alert("it's the final contdown!");
                         var session = localStorage.getItem("session");
                         $.ajax({
-                        type: "POST",
-                        url: "/pixels",
-                        contentType: "application/json",
-                        data: JSON.stringify({"session": session}),
-                        success: function(response){
-                            processResponse(response, "resend");
-                    }});
+                            type: "POST",
+                            url: "/pixels",
+                            contentType: "application/json",
+                            data: JSON.stringify({"session": session}),
+                            success: function(response) {
+                                processResponse(response, "resend");
+                        }});
                     }
                 }
             }
