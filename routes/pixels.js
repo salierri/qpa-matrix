@@ -67,5 +67,15 @@ module.exports = function (dal, config, reallocator) {
         }
     });
 
+    router.get('/viewall', function (req, res) {
+        dal.Pixel.find({}).lean().exec(function (err, doc) {
+            doc.forEach(function (element, index) {
+                delete doc[index]._id;
+                delete doc[index].reserved;
+            });
+            res.send(JSON.stringify(doc));
+        });
+    });
+
     return router;
 }
