@@ -3,10 +3,18 @@ var _ = require("lodash");
 module.exports = function (dal, config) {
 	var reallocator = {};
 
-	reallocator.timer = 0;
+	reallocator.timer = -1;
+
+	reallocator.when = function () {
+		if(reallocator.timer == -1) {
+			return -1;
+		} else {
+			return reallocator.timer - Date.now();
+		}
+	}
 
 	reallocator.needRealloc = function () {
-		if(reallocator.timer == 0) {
+		if(reallocator.timer == -1) {
 			reallocator.timer = Date.now() + config.reallocateTimer;
 			setTimeout(doRealloc, config.reallocateTimer);
 		}

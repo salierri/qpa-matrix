@@ -1,52 +1,27 @@
 var _ = require('lodash');
 var express = require('express');
 var router = express.Router();
+var sessioncheck = require('../modules/middlewares/sessioncheck');
 
-module.exports = function (dal) {
+module.exports = function (dal, config, reallocator) {
 
-    router.post('/keepalive', function (req, res) {
-        var user = req.body.session;
-        if(!user) {
-            res.send(JSON.stringify({status: "error"}));
-            console.log("No session for the user");
-        } else {
-            dal.User.findOne({_id: user}, function (err, doc) {
-                if(err || !doc) {
-                    res.send(JSON.stringify({status: "error"}));
-                    console.log("Invalid session");
-                } else {
-                    doc.lastUpdate = Date.now();
-                    doc.save(function (err, doc) {
-                    	res.send(JSON.stringify({status: "success"}));
-                    })
-                }
-            });
-        }
+    router.post('/keepalive', sessioncheck, function (req, res) {
+    	console.log("User keepalive: " + req.user._id);
+        req.user.lastUpdate = Date.now();
+        req.user.save(function (err, doc) {
+        	res.send(JSON.stringify({status: "success", hasPixel: req.user.hasPixel, nextRealloc: reallocator.when()}));
+        });
     });
 
-    router.post('/drop', function (req, res) {
-        var user = req.body.session;
-        if(!user) {
-            res.send(JSON.stringify({status: "error"}));
-            console.log("No session for the user");
-        } else {
-            dal.User.findOne({_id: user}, function (err, doc) {
-                if(err || !doc) {
-                    res.send(JSON.stringify({status: "error"}));
-                    console.log("Invalid session");
-                } else {
-                	if(doc.hasPixel) {
-                		dal.Pixel.update({_id: doc._pixel}, {reserved: false}, function (err, doc) {
-                			console.log(err);
-                			console.log(doc);
-                		});
-                	}
-                    doc.remove(function (err, doc) {
-                    	res.send(JSON.stringify({status: "success"}));
-                    });
-                }
-            });
-        }
+    router.post('/drop', sessioncheck, function (req, res) {
+    	console.log("Dropping user");
+    	if(req.user.hasPixel) {
+    		dal.Pixel.update({_id: req.user._pixel}, {reserved: false}, function (err, doc) {
+    		});
+    	}
+        req.user.remove(function (err, doc) {
+        	res.send(JSON.stringify({status: "success"}));
+        });
     });
 
     return router;
