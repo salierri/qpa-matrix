@@ -14,7 +14,9 @@
             }
             
             var idleTime = 0;
-            var countdown = 99;
+            var countdown = -1;
+            
+            var isCountdown = false;
             
             $(document).ready(function () {
             
@@ -51,12 +53,14 @@
                     document.getElementById("blue").value = data.pixel.color.b;
                     changeColor();
                     
-                    var pixeldata = pixelFromCoord(data.pixel);
+                    var pixeldata = pixelFromCoord30(data.pixel);
                     document.getElementById("pixelLocation").innerHTML =
                     "A te pixeled a " + pixeldata.szint  + ". szint "
                     + pixeldata.ablak + ". ablakának "
-                    + (pixeldata.bal ? "bal" : "jobb") + " "
-                    + (pixeldata.felso ? "felső" : "alsó") + " pixele.";
+                    + (pixeldata.bal === 0 ? "bal" : pixeldata.bal === 1 ? "középső" : "jobb") + " "
+                    + (pixeldata.felso === 0 ? "felső" : pixeldata.felso === 1 ? "középső" : "alsó") + " pixele.";
+                    
+                    isCountdown = false;
                     
                     document.getElementById("colortable").style="display:block";
                     document.getElementById("countdowntable").style="display:none";
@@ -67,6 +71,7 @@
                     //alert("kaka");
                 } else if (data.status === "queue") {
                     countdown = Math.ceil(data.nextRealloc / 1000);
+                    isCountdown = true;
                     
                     document.getElementById("colortable").style="display:none";
                     document.getElementById("countdowntable").style="display:block";    
@@ -90,27 +95,37 @@
             }
             
             function timerDecrement() {
-                countdown = countdown - 1;
-                document.getElementById("countdownLocation").innerHTML = '<p style="font-size:100px">' + countdown +'</p>';
-                if (countdown === 0) {
-                    //alert("it's the final contdown!");
-                    var session = localStorage.getItem("session");
-                    $.ajax({
-                    type: "POST",
-                    url: "/pixels",
-                    contentType: "application/json",
-                    data: JSON.stringify({"session": session}),
-                    success: function(response){
-                        processResponse(response, "resend");
-                }});
+                if(isCountdown) {
+                    countdown = countdown - 1;
+                    document.getElementById("countdownLocation").innerHTML = '<p style="font-size:100px">' + countdown +'</p>';
+                    if (countdown === 0) {
+                        //alert("it's the final contdown!");
+                        var session = localStorage.getItem("session");
+                        $.ajax({
+                        type: "POST",
+                        url: "/pixels",
+                        contentType: "application/json",
+                        data: JSON.stringify({"session": session}),
+                        success: function(response){
+                            processResponse(response, "resend");
+                    }});
+                    }
                 }
             }
             
-            function pixelFromCoord(coord) {
+            function pixelFromCoord20(coord) {
                 var szint = 18 - Math.floor(coord.y / 2);
                 var ablak = Math.floor(coord.x / 2) + 1;
-                var bal = (coord.x % 2) === 0;
-                var felso = (coord.y % 2) === 0;
+                var bal = (coord.x % 2) * 2;
+                var felso = (coord.y % 2) * 2;
+                return {"szint": szint, "ablak": ablak, "bal": bal, "felso": felso};
+            }
+            
+            function pixelFromCoord30(coord) {
+                var szint = 18 - Math.floor(coord.y / 3);
+                var ablak = Math.floor(coord.x / 3) + 1;
+                var bal = (coord.x % 3);
+                var felso = (coord.y % 3);
                 return {"szint": szint, "ablak": ablak, "bal": bal, "felso": felso};
             }
             
@@ -139,7 +154,7 @@
                 <td align='center'>Jelenleg nincs szabad pixel</td>
             </tr>
             <tr>
-                <td>A pixelek újraosztásáig szükséges idő:</td>
+                <td>A pixelek újraosztásáig hátralévő idő:</td>
             </tr>
             <tr>
                 <td id="countdownLocation" align='center'></td>
