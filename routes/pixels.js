@@ -9,7 +9,7 @@ module.exports = function (dal, config, reallocator) {
             dal.Pixel.count({reserved: false}, function (err, emptyCount) {
                 if(emptyCount === 0) {
                     reallocator.needRealloc();
-                    new dal.User({haspixel: false}).save(function (err, user) {
+                    new dal.User({hasPixel: false}).save(function (err, user) {
                         res.send(JSON.stringify({status: "queue", nextRealloc: reallocator.timer - Date.now(), session: user._id}));
                     });
                 } else {
