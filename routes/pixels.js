@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var express = require('express');
 var router = express.Router();
+var sessioncheck = require('../modules/middlewares/sessioncheck');
 
 module.exports = function (dal, config, reallocator) {
 
@@ -41,28 +42,30 @@ module.exports = function (dal, config, reallocator) {
         })();
     });
 
-    router.post('/', function (req, res) {
-        var user = req.body.session;
-        if(!user) {
-            res.send(JSON.stringify({status: "error"}));
-            console.log("No session for the user");
+    router.post('/', sessioncheck, function (req, res) {
+        if(req.user.hasPixel) {
+            dal.Pixel.findOne({_id: req.user._pixel}, function (err, pixel) {
+                res.send(JSON.stringify({status: "haspixel", pixel: {x: pixel.x, y: pixel.y, color: pixel.color}}));
+            });
         } else {
-            dal.User.findOne({_id: user}, function (err, doc) {
-                if(err || !doc) {
-                    res.send(JSON.stringify({status: "error"}));
-                    console.log("Invalid session");
-                } else {
-                    if(doc.hasPixel) {
-                        dal.Pixel.findOne({_id: doc._pixel}, function (err, pixel) {
-                            res.send(JSON.stringify({status: "haspixel", pixel: {x: pixel.x, y: pixel.y, color: pixel.color}}));
-                        });
-                    } else {
-                       res.send(JSON.stringify({status: "queue", nextRealloc: reallocator.timer - Date.now()}))
-                    }
-                }
+           res.send(JSON.stringify({status: "queue", nextRealloc: reallocator.timer - Date.now()}))
+        }
+    });
+
+    router.post('/update', sessioncheck, function (req, res) {
+        var color = req.body.color;
+        if(!req.user.hasPixel) {
+            res.send(JSON.stringify({status: "error"}));
+        } else {
+            dal.User.update({_id: req.user._id}, {lastUpdate: Date.now()}, function (err, doc){});
+            dal.Pixel.findOne({_id: req.user._pixel}, function (err, doc) {
+                doc.color = color;
+                doc.save(function (err, doc) {
+                    res.send(JSON.stringify({status: "success"}));
+                });
             });
         }
-    })
+    });
 
     return router;
 }
