@@ -8,14 +8,20 @@
             function changeColor() {
                 var r = document.getElementById("red").value;
                 var g = document.getElementById("green").value;
-                var b = document.getElementById("blue").value;;
+                var b = document.getElementById("blue").value;
                 var color = document.getElementById("colorRow");
                 color.style.backgroundColor="rgb(" + r + "," + g + "," + b + ")";
             }
+            
             var idleTime = 0;
+            var countdown = 99;
+            
             $(document).ready(function () {
+            
+                
                 //Increment the idle time counter every minute.
                 var idleInterval = setInterval(timerIncrement, 60000);
+                var countdownInterval = setInterval(timerDecrement, 1000);
                 
 
                 //Zero the idle timer on mouse movement.
@@ -31,27 +37,72 @@
                     url: "/pixels/reserve",
                     contentType: "application/json",
                     success: function(response){
-                        alert(response);
-                        var data = JSON.parse(response);
-                        if(data.status === "success") {
-                            var pixeldata = pixelFromCoord(data.pixel);
-                            document.getElementById("pixelLocation").innerHTML =
-                            "A te pixeled a " + pixeldata.szint  + ". szint "
-                            + pixeldata.ablak + ". ablakának "
-                            + (pixeldata.bal ? "bal" : "jobb") + " "
-                            + (pixeldata.felso ? "felső" : "alsó") + " pixele.";
-                        } else if (data.status === "queue") {
-                            
-                        } else {
-                            location.reload();
-                        }
+                        //alert(response);
+                        processResponse(response, "initial");
                 }});
             });
             
+            function processResponse(response, requestType) {
+                var data = JSON.parse(response);
+                alert(response);
+                if(data.status === "reserved" || data.status === "haspixel") {
+                    document.getElementById("red").value = data.pixel.color.r;
+                    document.getElementById("green").value = data.pixel.color.g;
+                    document.getElementById("blue").value = data.pixel.color.b;
+                    changeColor();
+                    
+                    var pixeldata = pixelFromCoord(data.pixel);
+                    document.getElementById("pixelLocation").innerHTML =
+                    "A te pixeled a " + pixeldata.szint  + ". szint "
+                    + pixeldata.ablak + ". ablakának "
+                    + (pixeldata.bal ? "bal" : "jobb") + " "
+                    + (pixeldata.felso ? "felső" : "alsó") + " pixele.";
+                    
+                    document.getElementById("colortable").style="display:block";
+                    document.getElementById("countdowntable").style="display:none";
+                    
+                    if(requestType === "initial") {
+                        localStorage.setItem("session", data.session);
+                    }
+                    //alert("kaka");
+                } else if (data.status === "queue") {
+                    countdown = Math.ceil(data.nextRealloc / 1000);
+                    
+                    document.getElementById("colortable").style="display:none";
+                    document.getElementById("countdowntable").style="display:block";    
+                    
+                    if(requestType === "initial") {
+                        localStorage.setItem("session", data.session);
+                    }
+                } else {
+                    if(requestType === "resend") {
+                        localStorage.removeItem("session");
+                    }
+                    location.reload();
+                }
+            }
+            
             function timerIncrement() {
                 idleTime = idleTime + 1;
-                if (idleTime === 1) {
+                if (idleTime === 100) {
                     alert("mozogjá!");
+                }
+            }
+            
+            function timerDecrement() {
+                countdown = countdown - 1;
+                document.getElementById("countdownLocation").innerHTML = '<p style="font-size:100px">' + countdown +'</p>';
+                if (countdown === 0) {
+                    //alert("it's the final contdown!");
+                    var session = localStorage.getItem("session");
+                    $.ajax({
+                    type: "POST",
+                    url: "/pixels",
+                    contentType: "application/json",
+                    data: JSON.stringify({"session": session}),
+                    success: function(response){
+                        processResponse(response, "resend");
+                }});
                 }
             }
             
@@ -81,6 +132,17 @@
             <tr>
                 <td>kék:</td>
                 <td><input type="range" id="blue" min = "0" max="255" onchange="changeColor()"/></td>
+            </tr>
+        </table>
+        <table border="0" id="countdowntable">
+            <tr>
+                <td align='center'>Jelenleg nincs szabad pixel</td>
+            </tr>
+            <tr>
+                <td>A pixelek újraosztásáig szükséges idő:</td>
+            </tr>
+            <tr>
+                <td id="countdownLocation" align='center'></td>
             </tr>
         </table>
         <div id="pixelLocation"></div>

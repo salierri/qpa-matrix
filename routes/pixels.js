@@ -16,13 +16,13 @@ module.exports = function (dal, config, reallocator) {
                     var number = Math.floor(Math.random() * emptyCount);
                     dal.Pixel.find({reserved: false}).limit(-1).skip(number).exec(function (err, doc) {
                         if(err | !doc) {
-                            console.log("Error during pixel randimization");
+                            console.log("Error during pixel randomization");
                             res.send(JSON.stringify({status: "error"}));
                         } else {
                             var r = Math.floor(Math.random() * 255), g = Math.floor(Math.random() * 255), b = Math.floor(Math.random() * 255);
                             dal.Pixel.findOneAndUpdate({_id: doc[0]._id, reserved: false}, {reserved: true, color: {r: r, g: g, b: b}}, function (err, doc) {
                                 if(err) {
-                                    console.log("Error during pixel randimization");
+                                    console.log("Error during pixel randomization");
                                     res.send(JSON.stringify({status: "error"}));
                                 }
                                 if(!doc) {
