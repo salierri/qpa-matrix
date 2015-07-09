@@ -4,3 +4,8 @@ for(var i = 0; i < 5; i++) {
 		db.pixels.insert({x: i, y: j, reserved: false});
 	}
 }
+
+db.tasks.drop();
+db.tasks.insert({name: "reallocate", lastRun: null});
+db.tasks.insert({name: "kick", lastRun: null});
+db.tasks.insert({name: "autocolor", lastRun: null});
