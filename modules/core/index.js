@@ -8,6 +8,7 @@ var bodyparser = require("body-parser");
 var requestlogger = require("../middlewares/requestlogger");
 var _index = require("../../routes/index");
 var _pixels = require("../../routes/pixels");
+var _connection = require("../../routes/connection");
 var _reallocate = require("../timed_tasks/reallocate");
 
 var json_only = function(req, res, next) {
@@ -34,6 +35,7 @@ exports.createCore = function(dal, config) {
 
     app.use('/', _index(dal));
     app.use('/pixels', _pixels(dal, config, reallocator));
+    app.use('/connection', _connection(dal, config, reallocator));
 
     http.createServer(app).listen(app.get('port'), function() {
         console.log("Core started on port " + app.get('port'));
