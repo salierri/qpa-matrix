@@ -2,21 +2,11 @@
 <html>
     <head>
         <meta charset="utf-8" /> 
-        <title>Mátrix Game</title>
+        <title>Mátrix pixelem</title>
         <script src="jquery.min.js"></script>
         <script>
-            function changeColor() {
-                var r = document.getElementById("red").value;
-                var g = document.getElementById("green").value;
-                var b = document.getElementById("blue").value;
-                var color = document.getElementById("colorRow");
-                color.style.backgroundColor="rgb(" + r + "," + g + "," + b + ")";
-            }
-            
             var idleTime = 0;
             var countdown = -1;
-            
-            var isCountdown = false;
             
             $(document).ready(function () {
             
@@ -30,7 +20,6 @@
                     if(idleTime === 1) {
                         keepalive();
                     }
-                    
                     idleTime = 0;
                 });
                 
@@ -44,6 +33,7 @@
                 
                 $(window).bind('beforeunload', function () {
                     var session = localStorage.getItem("session");
+                    localStorage.removeItem("session");
                     $.ajax({
                         type: "POST",
                         url: "/connection/drop",
@@ -68,26 +58,25 @@
                     document.getElementById("red").value = data.pixel.color.r;
                     document.getElementById("green").value = data.pixel.color.g;
                     document.getElementById("blue").value = data.pixel.color.b;
-                    changeColor();
+                    document.getElementById("colorRow").style.backgroundColor =
+                        "rgb(" + data.pixel.color.r + "," + data.pixel.color.g + "," + data.pixel.color.b + ")";
                     
-                    var pixeldata = pixelFromCoord30(data.pixel);
+                    var pixeldata = pixelFromCoord20(data.pixel);
                     document.getElementById("pixelLocation").innerHTML =
                     "A te pixeled a " + pixeldata.szint  + ". szint "
                     + pixeldata.ablak + ". ablakának "
                     + (pixeldata.bal === 0 ? "bal" : pixeldata.bal === 1 ? "középső" : "jobb") + " "
                     + (pixeldata.felso === 0 ? "felső" : pixeldata.felso === 1 ? "középső" : "alsó") + " pixele.";
                     
-                    isCountdown = false;
-                    
                     document.getElementById("colortable").style="display:block";
                     document.getElementById("countdowntable").style="display:none";
                     
                     if(requestType === "initial") {
                         localStorage.setItem("session", data.session);
+                        //alert(localStorage.getItem("session"));
                     }
                 } else if (data.status === "queue") {
                     countdown = Math.ceil(data.nextRealloc / 1000);
-                    isCountdown = true;
                     
                     document.getElementById("colortable").style="display:none";
                     document.getElementById("countdowntable").style="display:block";    
@@ -99,41 +88,71 @@
                     if(requestType === "resend") {
                         localStorage.removeItem("session");
                     }
-                    location.reload();
+                    $.ajax({
+                        type: "GET",
+                        url: "/pixels/reserve",
+                        contentType: "application/json",
+                        success: function(response){
+                            processResponse(response, "initial");
+                    }});
+                }
+            }
+            
+            function updatePage(response) {
+                var data = JSON.parse(response);
+                if(data.status === "success") {
+                    countdown = Math.ceil(data.nextRealloc / 1000);
+                    document.getElementById("colortable").style="display:block";
+                    document.getElementById("countdowntable").style="display:none";
+                } else if(data.status === "nopixel") {
+                    countdown = Math.ceil(data.nextRealloc / 1000);
+                    document.getElementById("colortable").style="display:none";
+                    document.getElementById("countdowntable").style="display:block";
+                } else {
+                    localStorage.removeItem("session");
+                    $.ajax({
+                        type: "GET",
+                        url: "/pixels/reserve",
+                        contentType: "application/json",
+                        success: function(response){
+                            processResponse(response, "initial");
+                    }});
                 }
             }
             
             function keepalive() {
+                var session = localStorage.getItem("session");
                 $.ajax({
                     type: "POST",
                     url: "/connection/keepalive",
                     contentType: "application/json",
-                    data: JSON.stringify({"session": session})
+                    data: JSON.stringify({"session": session}),
+                    success: function(response) {
+                        updatePage(response);
+                    }
                 });
             }
             
             function timerIncrement() {
                 idleTime = idleTime + 1;
                 if (idleTime === 2) {
-                    alert("mozogjá!");
+                    alert("Ha nem használod az alkalmazást, elveszhet a pixeled!");
                 }
             }
             
             function timerDecrement() {
-                if(isCountdown) {
-                    countdown = countdown - 1;
-                    document.getElementById("countdownLocation").innerHTML = '<p style="font-size:100px">' + countdown +'</p>';
-                    if (countdown === 0) {
-                        var session = localStorage.getItem("session");
-                        $.ajax({
-                            type: "POST",
-                            url: "/pixels",
-                            contentType: "application/json",
-                            data: JSON.stringify({"session": session}),
-                            success: function(response) {
-                                processResponse(response, "resend");
-                        }});
-                    }
+                countdown = countdown - 1;
+                document.getElementById("countdownLocation").innerHTML = '<p style="font-size:100px">' + Math.max(countdown, 0) +'</p>';
+                if (countdown === -1) {
+                    var session = localStorage.getItem("session");
+                    $.ajax({
+                        type: "POST",
+                        url: "/pixels",
+                        contentType: "application/json",
+                        data: JSON.stringify({"session": session}),
+                        success: function(response) {
+                            processResponse(response, "resend");
+                    }});
                 }
             }
             
@@ -151,6 +170,25 @@
                 var bal = (coord.x % 3);
                 var felso = (coord.y % 3);
                 return {"szint": szint, "ablak": ablak, "bal": bal, "felso": felso};
+            }
+            
+            function changeColor() {
+                var r = document.getElementById("red").value;
+                var g = document.getElementById("green").value;
+                var b = document.getElementById("blue").value;
+                var colorsheet = document.getElementById("colorRow");
+                colorsheet.style.backgroundColor="rgb(" + r + "," + g + "," + b + ")";
+                var color = {"r": r, "g": g, "b": b};
+                
+                var session = localStorage.getItem("session");
+                $.ajax({
+                    type: "POST",
+                    url: "/pixels/update",
+                    contentType: "application/json",
+                    data: JSON.stringify({"session": session, "color": color}),
+                    success: function(response) {
+                        updatePage(response);
+                }});
             }
             
         </script>

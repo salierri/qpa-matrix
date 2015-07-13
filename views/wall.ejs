@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" /> 
+        <title>Mátrix pixelem kijelző</title>
+        <style>
+            html, body, table, #wall { height: 100%; }
+            table, #wall, td, tr { width = 100%; }
+        </style>
+        <script src="jquery.min.js"></script>
+        <script>
+        
+        $(document).ready(function () {
+        
+            var refreshInterval = setInterval(refresh, 1000);
+            
+            getPixels("initial");
+            
+        })
+        
+        function refresh() {
+            getPixels("redraw");
+        }
+        
+        function getPixels(responseType) {
+            $.ajax({
+                type: "GET",
+                url: "/pixels/viewall",
+                contentType: "application/json",
+                success: function(response){
+                    processPixels(response, responseType);
+            }});
+        }
+        
+        function processPixels(response, responseType) {
+            var data = JSON.parse(response);
+            if(responseType === "initial")
+            {
+                data.sort(function(a,b){return b.x - a.x});
+                var xmax = data[0].x;
+                data.sort(function(a,b){return b.y - a.y});
+                var ymax = data[0].y
+                var version = 1;
+                
+                var wall = document.getElementById('wall');
+                var table = document.createElement('table');
+                table.setAttribute('border', '5');
+                table.style.width = '100%';
+
+                for(var i = 0; i <= ymax; i += version) {
+                    var tr = document.createElement('tr');
+                    for(var j = 0; j <= xmax; j += version) {
+                        var td = document.createElement('td');
+                        var innerTable = document.createElement('table');
+                        innerTable.setAttribute('border', '1');
+                        innerTable.style.width = '100%';
+                        td.appendChild(innerTable);
+                        
+                        for(var k = 0; k < version; k++) {
+                            var itr = document.createElement('tr');
+                            for(var l = 0; l < version; l++) {
+                                var itd = document.createElement('td');
+                                itd.setAttribute('id', (j + l) + "," + (i + k));
+                                itr.appendChild(itd);
+                            }
+                            innerTable.appendChild(itr);
+                        }
+                        tr.appendChild(td);
+                    }
+                    table.appendChild(tr);
+                }
+                wall.appendChild(table);
+            }
+            for(var i = 0; i < data.length; i++) {
+                var color = data[i].color;
+                if(color != null) {
+                    var x = data[i].x;
+                    var y = data[i].y;
+                    var currentPixel = document.getElementById(x + "," + y);
+                    currentPixel.style.backgroundColor =
+                        "rgb(" + color.r + "," + color.g + "," + color.b + ")";
+                }
+            }
+        }
+        
+        </script>
+    </head>
+    <body>
+    <div id='wall'></div>
+    </body>
+</html>
