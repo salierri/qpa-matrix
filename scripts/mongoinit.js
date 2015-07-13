@@ -5,4 +5,7 @@ for(var i = 0; i < 2; i++) {
 	}
 }
 
-db.pixels.update({}, {$set:{reserved:false}},false,true)
+db.tasks.drop();
+db.tasks.insert({name: "reallocate", lastRun: null});
+db.tasks.insert({name: "kick", lastRun: null});
+db.tasks.insert({name: "autocolor", lastRun: null});
