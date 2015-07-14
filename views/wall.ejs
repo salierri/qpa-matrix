@@ -39,8 +39,9 @@
                 data.sort(function(a,b){return b.x - a.x});
                 var xmax = data[0].x;
                 data.sort(function(a,b){return b.y - a.y});
-                var ymax = data[0].y
-                var version = 1;
+                var ymax = data[0].y;
+                //!!!!!!SET VERSION HERE!!!!!!!
+                var version = 2;
                 
                 var wall = document.getElementById('wall');
                 var table = document.createElement('table');
@@ -52,7 +53,7 @@
                     for(var j = 0; j <= xmax; j += version) {
                         var td = document.createElement('td');
                         var innerTable = document.createElement('table');
-                        innerTable.setAttribute('border', '1');
+                        //innerTable.setAttribute('border', '1');
                         innerTable.style.width = '100%';
                         td.appendChild(innerTable);
                         

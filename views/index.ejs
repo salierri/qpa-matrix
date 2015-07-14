@@ -8,6 +8,64 @@
             var idleTime = 0;
             var countdown = -1;
             
+            function keepalive() {
+                var session = localStorage.getItem("session");
+                $.ajax({
+                    type: "POST",
+                    url: "/connection/keepalive",
+                    contentType: "application/json",
+                    data: JSON.stringify({"session": session}),
+                    success: function(response) {
+                        updatePage(response);
+                    }
+                });
+            }
+            
+            function postPixels() {
+                var session = localStorage.getItem("session");
+                $.ajax({
+                    type: "POST",
+                    url: "/pixels",
+                    contentType: "application/json",
+                    data: JSON.stringify({"session": session}),
+                    success: function(response) {
+                        processResponse(response, "resend");
+                }});
+            }
+            
+            function dropMe() {
+                var session = localStorage.getItem("session");
+                localStorage.removeItem("session");
+                $.ajax({
+                    type: "POST",
+                    url: "/connection/drop",
+                    contentType: "application/json",
+                    data: JSON.stringify({"session": session})
+                });
+            }
+            
+            function reserve() {
+                $.ajax({
+                    type: "GET",
+                    url: "/pixels/reserve",
+                    contentType: "application/json",
+                    success: function(response){
+                        processResponse(response, "initial");
+                }});
+            }
+            
+            function updatePixel(color) {
+                var session = localStorage.getItem("session");
+                $.ajax({
+                    type: "POST",
+                    url: "/pixels/update",
+                    contentType: "application/json",
+                    data: JSON.stringify({"session": session, "color": color}),
+                    success: function(response) {
+                        updatePage(response);
+                }});
+            }
+            
             $(document).ready(function () {
             
                 
@@ -32,23 +90,11 @@
                 });
                 
                 $(window).bind('beforeunload', function () {
-                    var session = localStorage.getItem("session");
-                    localStorage.removeItem("session");
-                    $.ajax({
-                        type: "POST",
-                        url: "/connection/drop",
-                        contentType: "application/json",
-                        data: JSON.stringify({"session": session})
-                    });
+                    dropMe();
                 });
                 
-                $.ajax({
-                    type: "GET",
-                    url: "/pixels/reserve",
-                    contentType: "application/json",
-                    success: function(response){
-                        processResponse(response, "initial");
-                }});
+                reserve();
+                
             });
             
             function processResponse(response, requestType) {
@@ -61,6 +107,8 @@
                     document.getElementById("colorRow").style.backgroundColor =
                         "rgb(" + data.pixel.color.r + "," + data.pixel.color.g + "," + data.pixel.color.b + ")";
                     
+                    
+                    //!!!!!!SET VERSION HERE!!!!!!!
                     var pixeldata = pixelFromCoord20(data.pixel);
                     document.getElementById("pixelLocation").innerHTML =
                     "A te pixeled a " + pixeldata.szint  + ". szint "
@@ -68,18 +116,14 @@
                     + (pixeldata.bal === 0 ? "bal" : pixeldata.bal === 1 ? "középső" : "jobb") + " "
                     + (pixeldata.felso === 0 ? "felső" : pixeldata.felso === 1 ? "középső" : "alsó") + " pixele.";
                     
-                    document.getElementById("colortable").style="display:block";
-                    document.getElementById("countdowntable").style="display:none";
+                    showColorTable(true);
                     
                     if(requestType === "initial") {
                         localStorage.setItem("session", data.session);
-                        //alert(localStorage.getItem("session"));
                     }
                 } else if (data.status === "queue") {
                     countdown = Math.ceil(data.nextRealloc / 1000);
-                    
-                    document.getElementById("colortable").style="display:none";
-                    document.getElementById("countdowntable").style="display:block";    
+                    showColorTable(false);   
                     
                     if(requestType === "initial") {
                         localStorage.setItem("session", data.session);
@@ -88,49 +132,26 @@
                     if(requestType === "resend") {
                         localStorage.removeItem("session");
                     }
-                    $.ajax({
-                        type: "GET",
-                        url: "/pixels/reserve",
-                        contentType: "application/json",
-                        success: function(response){
-                            processResponse(response, "initial");
-                    }});
+                    reserve();
                 }
             }
             
             function updatePage(response) {
                 var data = JSON.parse(response);
                 if(data.status === "success") {
-                    countdown = Math.ceil(data.nextRealloc / 1000);
-                    document.getElementById("colortable").style="display:block";
-                    document.getElementById("countdowntable").style="display:none";
+                    if(data.nextRealloc === false) {
+                        countdown = -1;
+                    } else {
+                        countdown = Math.ceil(data.nextRealloc / 1000);
+                    }
+                    showColorTable(true);
                 } else if(data.status === "nopixel") {
                     countdown = Math.ceil(data.nextRealloc / 1000);
-                    document.getElementById("colortable").style="display:none";
-                    document.getElementById("countdowntable").style="display:block";
+                    showColorTable(false);
                 } else {
                     localStorage.removeItem("session");
-                    $.ajax({
-                        type: "GET",
-                        url: "/pixels/reserve",
-                        contentType: "application/json",
-                        success: function(response){
-                            processResponse(response, "initial");
-                    }});
+                    reserve();
                 }
-            }
-            
-            function keepalive() {
-                var session = localStorage.getItem("session");
-                $.ajax({
-                    type: "POST",
-                    url: "/connection/keepalive",
-                    contentType: "application/json",
-                    data: JSON.stringify({"session": session}),
-                    success: function(response) {
-                        updatePage(response);
-                    }
-                });
             }
             
             function timerIncrement() {
@@ -144,15 +165,17 @@
                 countdown = countdown - 1;
                 document.getElementById("countdownLocation").innerHTML = '<p style="font-size:100px">' + Math.max(countdown, 0) +'</p>';
                 if (countdown === -1) {
-                    var session = localStorage.getItem("session");
-                    $.ajax({
-                        type: "POST",
-                        url: "/pixels",
-                        contentType: "application/json",
-                        data: JSON.stringify({"session": session}),
-                        success: function(response) {
-                            processResponse(response, "resend");
-                    }});
+                    postPixels();
+                }
+            }
+            
+            function showColorTable(visible){
+                if(visible) {
+                    document.getElementById("colortable").style.display = "block";
+                    document.getElementById("countdowntable").style.display = "none";
+                } else {
+                    document.getElementById("colortable").style.display = "none";
+                    document.getElementById("countdowntable").style.display = "block";
                 }
             }
             
@@ -180,15 +203,7 @@
                 colorsheet.style.backgroundColor="rgb(" + r + "," + g + "," + b + ")";
                 var color = {"r": r, "g": g, "b": b};
                 
-                var session = localStorage.getItem("session");
-                $.ajax({
-                    type: "POST",
-                    url: "/pixels/update",
-                    contentType: "application/json",
-                    data: JSON.stringify({"session": session, "color": color}),
-                    success: function(response) {
-                        updatePage(response);
-                }});
+                updatePixel(color);
             }
             
         </script>
