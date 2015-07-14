@@ -9,7 +9,10 @@ module.exports = function(mongoose) {
         name: {
             type: String
         },
-        lastRun: {
+        last_run: {
+            type: Date
+        },
+        next_run: {
             type: Date
         }
     });

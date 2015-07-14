@@ -11,6 +11,7 @@ var config = {
         x: 5,
         y: 5
     },
-    reallocateTimer: 10000
+    reallocateTimer: 10000,
+    timeout: 12000
 };
 module.exports = config;

@@ -9,7 +9,9 @@ module.exports = function (dal, config, reallocator) {
     	console.log("User keepalive: " + req.user._id);
         req.user.lastUpdate = Date.now();
         req.user.save(function (err, doc) {
-        	res.send(JSON.stringify({status: "success", hasPixel: req.user.hasPixel, nextRealloc: reallocator.when()}));
+            reallocator.when(function (when) {
+            	res.send(JSON.stringify({status: "success", hasPixel: req.user.hasPixel, nextRealloc: when}));
+            });
         });
     });
 

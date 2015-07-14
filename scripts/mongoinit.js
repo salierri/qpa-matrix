@@ -1,3 +1,4 @@
+db.users.drop();
 db.pixels.drop();
 for(var i = 0; i < 2; i++) {
 	for(var j = 0; j < 2; j++) {
@@ -6,6 +7,6 @@ for(var i = 0; i < 2; i++) {
 }
 
 db.tasks.drop();
-db.tasks.insert({name: "reallocate", lastRun: null});
-db.tasks.insert({name: "kick", lastRun: null});
-db.tasks.insert({name: "autocolor", lastRun: null});
+db.tasks.insert({name: "reallocate", last_run: null, next_run: null});
+db.tasks.insert({name: "kick", last_run: null, next_run: null});
+db.tasks.insert({name: "autocolor", last_run: null, next_run: null});
