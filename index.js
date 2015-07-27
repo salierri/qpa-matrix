@@ -3,18 +3,23 @@ var _ = require("lodash");
 
 var cluster = require('cluster');
 
+var _kick_users = require("./modules/timed_tasks/kick_users");
+
 var data_access_layer = require('./models/dal/mongodb');
 var dal = new data_access_layer(config);
 
 if (cluster.isMaster) {
     process.on('uncaughtException', function(error) {
-        console.log("Uncaught exception in master thread. Sending message to raygun, and terminating in "+ terminateTimeout+ " ms.");
+        console.log("Uncaught exception in master thread. Terminating in 3 s.");
         console.log(error);
         setTimeout(function () {
             console.log("Exiting master.");
             process.exit(1);
         }, 3000);
     });
+
+    _kick_users(dal, config);
+
     var cpuCount = require('os').cpus().length;
 
     // Create a worker for each CPU
