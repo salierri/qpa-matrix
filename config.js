@@ -12,6 +12,10 @@ var config = {
         y: 5
     },
     reallocateTimer: 10000,
-    timeout: 12000
+    timeout: 12000,
+    autocolor: {
+        interval: 5000,
+        volume: 0.2
+    }
 };
 module.exports = config;

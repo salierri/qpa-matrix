@@ -4,6 +4,7 @@ var _ = require("lodash");
 var cluster = require('cluster');
 
 var _kick_users = require("./modules/timed_tasks/kick_users");
+var _autocolor = require("./modules/timed_tasks/autocolor");
 
 var data_access_layer = require('./models/dal/mongodb');
 var dal = new data_access_layer(config);
@@ -19,6 +20,7 @@ if (cluster.isMaster) {
     });
 
     _kick_users(dal, config);
+    _autocolor(dal, config);
 
     var cpuCount = require('os').cpus().length;
 
