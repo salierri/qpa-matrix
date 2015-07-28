@@ -76,7 +76,7 @@
             
             $(document).ready(function () {
             
-                var idleInterval = setInterval(timerIncrement, 30000);
+                var idleInterval = setInterval(timerIncrement, 6000);
                 var countdownInterval = setInterval(timerDecrement, 1000);
                 var updateInterval = setInterval(periodicUpdate, 250);
                 
@@ -151,7 +151,7 @@
                     } else {
                         countdown = Math.ceil(data.nextRealloc / 1000);
                     }
-                    if(data.haspixel) {
+                    if(data.haspixel === null || data.haspixel) {
                         showColorTable(true);
                     } else {
                         showColorTable(false);
