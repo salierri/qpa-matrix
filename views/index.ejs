@@ -6,10 +6,12 @@
         <script src="jquery.min.js"></script>
         <script>
             var idleTime = 0;
-            var countdown = -1;
+            var countdown = 0;
+            var lastColor = null;
+            var wasChange = false;
             
             function keepalive() {
-                var session = localStorage.getItem("session");
+                var session = localStorage.getItem("matrixsession");
                 $.ajax({
                     type: "POST",
                     url: "/connection/keepalive",
@@ -22,20 +24,26 @@
             }
             
             function postPixels() {
-                var session = localStorage.getItem("session");
-                $.ajax({
-                    type: "POST",
-                    url: "/pixels",
-                    contentType: "application/json",
-                    data: JSON.stringify({"session": session}),
-                    success: function(response) {
-                        processResponse(response, "resend");
-                }});
+                //alert(localStorage.getItem("matrixsession"));
+                var session = localStorage.getItem("matrixsession");
+                alert(session);
+                if(session === null) {
+                    reserve();
+                } else {
+                    $.ajax({
+                        type: "POST",
+                        url: "/pixels",
+                        contentType: "application/json",
+                        data: JSON.stringify({"session": session}),
+                        success: function(response) {
+                            processResponse(response, "resend");
+                    }});
+                }
             }
             
             function dropMe() {
-                var session = localStorage.getItem("session");
-                localStorage.removeItem("session");
+                var session = localStorage.getItem("matrixsession");
+                localStorage.removeItem("matrixsession");
                 $.ajax({
                     type: "POST",
                     url: "/connection/drop",
@@ -55,7 +63,7 @@
             }
             
             function updatePixel(color) {
-                var session = localStorage.getItem("session");
+                var session = localStorage.getItem("matrixsession");
                 $.ajax({
                     type: "POST",
                     url: "/pixels/update",
@@ -68,9 +76,9 @@
             
             $(document).ready(function () {
             
-                
                 var idleInterval = setInterval(timerIncrement, 60000);
                 var countdownInterval = setInterval(timerDecrement, 1000);
+                var updateInterval = setInterval(periodicUpdate, 250);
                 
 
                 //Zero the idle timer on mouse movement.
@@ -93,20 +101,19 @@
                     dropMe();
                 });
                 
-                reserve();
-                
             });
             
             function processResponse(response, requestType) {
                 var data = JSON.parse(response);
                 //alert(response);
                 if(data.status === "reserved" || data.status === "haspixel") {
-                    document.getElementById("red").value = data.pixel.color.r;
-                    document.getElementById("green").value = data.pixel.color.g;
-                    document.getElementById("blue").value = data.pixel.color.b;
-                    document.getElementById("colorRow").style.backgroundColor =
-                        "rgb(" + data.pixel.color.r + "," + data.pixel.color.g + "," + data.pixel.color.b + ")";
-                    
+                    if(!wasChange) {
+                        document.getElementById("red").value = data.pixel.color.r;
+                        document.getElementById("green").value = data.pixel.color.g;
+                        document.getElementById("blue").value = data.pixel.color.b;
+                        document.getElementById("colorRow").style.backgroundColor =
+                            "rgb(" + data.pixel.color.r + "," + data.pixel.color.g + "," + data.pixel.color.b + ")";
+                    }
                     
                     //!!!!!!SET VERSION HERE!!!!!!!
                     var pixeldata = pixelFromCoord20(data.pixel);
@@ -119,18 +126,18 @@
                     showColorTable(true);
                     
                     if(requestType === "initial") {
-                        localStorage.setItem("session", data.session);
+                        localStorage.setItem("matrixsession", data.session);
                     }
                 } else if (data.status === "queue") {
                     countdown = Math.ceil(data.nextRealloc / 1000);
                     showColorTable(false);   
                     
                     if(requestType === "initial") {
-                        localStorage.setItem("session", data.session);
+                        localStorage.setItem("matrixsession", data.session);
                     }
                 } else {
                     if(requestType === "resend") {
-                        localStorage.removeItem("session");
+                        localStorage.removeItem("matrixsession");
                     }
                     reserve();
                 }
@@ -139,6 +146,7 @@
             function updatePage(response) {
                 var data = JSON.parse(response);
                 if(data.status === "success") {
+                    alert(data.nextRealloc);
                     if(data.nextRealloc === false) {
                         countdown = -1;
                     } else {
@@ -149,7 +157,7 @@
                     countdown = Math.ceil(data.nextRealloc / 1000);
                     showColorTable(false);
                 } else {
-                    localStorage.removeItem("session");
+                    localStorage.removeItem("matrixsession");
                     reserve();
                 }
             }
@@ -166,6 +174,13 @@
                 document.getElementById("countdownLocation").innerHTML = '<p style="font-size:100px">' + Math.max(countdown, 0) +'</p>';
                 if (countdown === -1) {
                     postPixels();
+                }
+            }
+            
+            function periodicUpdate() {
+                if(wasChange) {
+                    updatePixel(lastColor);
+                    wasChange = false;
                 }
             }
             
@@ -203,7 +218,10 @@
                 colorsheet.style.backgroundColor="rgb(" + r + "," + g + "," + b + ")";
                 var color = {"r": r, "g": g, "b": b};
                 
-                updatePixel(color);
+                if(color != lastColor) {
+                    lastColor = color;
+                    wasChange = true;
+                }
             }
             
         </script>
