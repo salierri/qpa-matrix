@@ -26,7 +26,7 @@
             function postPixels() {
                 //alert(localStorage.getItem("matrixsession"));
                 var session = localStorage.getItem("matrixsession");
-                alert(session);
+                //alert(session);
                 if(session === null) {
                     reserve();
                 } else {
@@ -76,7 +76,7 @@
             
             $(document).ready(function () {
             
-                var idleInterval = setInterval(timerIncrement, 60000);
+                var idleInterval = setInterval(timerIncrement, 30000);
                 var countdownInterval = setInterval(timerDecrement, 1000);
                 var updateInterval = setInterval(periodicUpdate, 250);
                 
@@ -146,7 +146,6 @@
             function updatePage(response) {
                 var data = JSON.parse(response);
                 if(data.status === "success") {
-                    alert(data.nextRealloc);
                     if(data.nextRealloc === false) {
                         countdown = -1;
                     } else {
