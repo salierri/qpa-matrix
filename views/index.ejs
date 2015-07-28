@@ -151,7 +151,11 @@
                     } else {
                         countdown = Math.ceil(data.nextRealloc / 1000);
                     }
-                    showColorTable(true);
+                    if(data.haspixel) {
+                        showColorTable(true);
+                    } else {
+                        showColorTable(false);
+                    }
                 } else if(data.status === "nopixel") {
                     countdown = Math.ceil(data.nextRealloc / 1000);
                     showColorTable(false);
