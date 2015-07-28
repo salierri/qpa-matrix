@@ -44,20 +44,16 @@ module.exports = function (dal, config) {
 								console.log("Done reallocating");
 							});
 							for(var i = 0; i < Math.min(needed, doc.length - needed); i++) {
-								var newDoc = doc[i];
-								delete newDoc._id;
-								newDoc.hasPixel = true;
-								newDoc._pixel = doc[needed + i]._pixel;
-								newDoc.timer = Date.now();
-								var newDoc2 = doc[needed + i];
-								delete newDoc2._id;
-								newDoc2.hasPixel = false;
-								newDoc2._pixel = null;
-								newDoc2.timer = Date.now();
-								dal.User.update({_id: doc[i]._id}, newDoc, function (err) {
+								doc[i].hasPixel = true;
+								doc[i]._pixel = doc[needed + i]._pixel;
+								doc[i].timer = Date.now();
+								doc[needed + i].hasPixel = false;
+								doc[needed + i]._pixel = null;
+								doc[needed + i].timer = Date.now();
+								dal.User.update({_id: doc[i]._id}, doc[i], function (err) {
 									done();
 								});
-								dal.User.update({_id: doc[needed + i]._id}, newDoc2, function (err) {
+								dal.User.update({_id: doc[needed + i]._id}, doc[needed + i], function (err) {
 									done();
 								});
 							}
