@@ -11,8 +11,8 @@ var config = {
         x: 5,
         y: 5
     },
-    reallocateTimer: 10000,
-    timeout: 12000,
+    reallocateTimer: 20000,
+    timeout: 60000,
     autocolor: {
         interval: 5000,
         volume: 0.2
