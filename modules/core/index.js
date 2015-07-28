@@ -11,11 +11,6 @@ var _pixels = require("../../routes/pixels");
 var _connection = require("../../routes/connection");
 var _reallocate = require("../timed_tasks/reallocate");
 
-var json_only = function(req, res, next) {
-        res.setHeader("Content-Type", "application/json");
-        next();
-    };
-
 exports.createCore = function(dal, config) {
     GLOBAL.dal = dal;
     GLOBAL.config = config;
@@ -28,7 +23,6 @@ exports.createCore = function(dal, config) {
 
     //Initial Express setup
     app.use(requestlogger.logrequest(config));
-    //app.use(json_only);
     app.use(bodyparser.json());
     app.use(bodyparser.urlencoded({extended: true}));
 

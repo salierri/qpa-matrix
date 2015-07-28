@@ -11,7 +11,9 @@ module.exports = function (dal, config, reallocator) {
                 if(emptyCount === 0) {
                     reallocator.needRealloc();
                     new dal.User({hasPixel: false}).save(function (err, user) {
-                        res.send(JSON.stringify({status: "queue", nextRealloc: reallocator.when(), session: user._id}));
+                        reallocator.when(function (when) {
+                            res.send(JSON.stringify({status: "queue", nextRealloc: when, session: user._id}));
+                        });
                     });
                 } else {
                     var number = Math.floor(Math.random() * emptyCount);
@@ -45,23 +47,31 @@ module.exports = function (dal, config, reallocator) {
     router.post('/', sessioncheck, function (req, res) {
         if(req.user.hasPixel) {
             dal.Pixel.findOne({_id: req.user._pixel}, function (err, pixel) {
-                res.send(JSON.stringify({status: "haspixel", pixel: {x: pixel.x, y: pixel.y, color: pixel.color}}));
+                reallocator.when(function (when) {
+                    res.send(JSON.stringify({status: "haspixel", nextRealloc: when, pixel: {x: pixel.x, y: pixel.y, color: pixel.color}}));
+                });
             });
         } else {
-           res.send(JSON.stringify({status: "queue", nextRealloc: reallocator.timer - Date.now()}))
+            reallocator.when(function (when) {
+                res.send(JSON.stringify({status: "queue", nextRealloc: when}))
+            });
         }
     });
 
     router.post('/update', sessioncheck, function (req, res) {
         var color = req.body.color;
         if(!req.user.hasPixel) {
-            res.send(JSON.stringify({status: "nopixel", nextRealloc: reallocator.when()}));
+            reallocator.when(function (when) {
+                res.send(JSON.stringify({status: "nopixel", nextRealloc: when}));
+            });
         } else {
             dal.User.update({_id: req.user._id}, {lastUpdate: Date.now()}, function (err, doc){});
             dal.Pixel.findOne({_id: req.user._pixel}, function (err, doc) {
                 doc.color = color;
                 doc.save(function (err, doc) {
-                    res.send(JSON.stringify({status: "success", nextRealloc: reallocator.when()}));
+                    reallocator.when(function (when) {
+                        res.send(JSON.stringify({status: "success", nextRealloc: when}));
+                    });
                 });
             });
         }
