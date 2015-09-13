@@ -9,6 +9,7 @@
             var countdown = 0;
             var lastColor = null;
             var wasChange = false;
+            var nopixel = true;
             
             function keepalive() {
                 var session = localStorage.getItem("matrixsession");
@@ -107,21 +108,27 @@
                 var data = JSON.parse(response);
                 //alert(response);
                 if(data.status === "reserved" || data.status === "haspixel") {
+                    if(nopixel)
+                    {
+                        alert("You got a new pixel!");
+                        nopixel = false;
+                    }
+                    
                     if(!wasChange) {
-                        document.getElementById("red").value = data.pixel.color.r;
-                        document.getElementById("green").value = data.pixel.color.g;
-                        document.getElementById("blue").value = data.pixel.color.b;
-                        document.getElementById("colorRow").style.backgroundColor =
-                            "rgb(" + data.pixel.color.r + "," + data.pixel.color.g + "," + data.pixel.color.b + ")";
+                        $("#red").val(data.pixel.color.r);
+                        $("#green").val(data.pixel.color.g);
+                        $("#blue").val(data.pixel.color.b);
+                        $("#colorRow").css('background', "rgb(" + data.pixel.color.r + "," + data.pixel.color.g + "," + data.pixel.color.b + ")");
                     }
                     
                     //!!!!!!SET VERSION HERE!!!!!!!
                     var pixeldata = pixelFromCoord20(data.pixel);
-                    document.getElementById("pixelLocation").innerHTML =
-                    "A te pixeled a " + pixeldata.szint  + ". szint "
-                    + pixeldata.ablak + ". ablakának "
-                    + (pixeldata.bal === 0 ? "bal" : pixeldata.bal === 1 ? "középső" : "jobb") + " "
-                    + (pixeldata.felso === 0 ? "felső" : pixeldata.felso === 1 ? "középső" : "alsó") + " pixele.";
+                    $("#pixelLocation").html(
+                        "A te pixeled a " + pixeldata.szint  + ". szint "
+                        + pixeldata.ablak + ". ablakának "
+                        + (pixeldata.bal === 0 ? "bal" : pixeldata.bal === 1 ? "középső" : "jobb") + " "
+                        + (pixeldata.felso === 0 ? "felső" : pixeldata.felso === 1 ? "középső" : "alsó") + " pixele."
+                    );
                     
                     showColorTable(true);
                     
@@ -129,6 +136,7 @@
                         localStorage.setItem("matrixsession", data.session);
                     }
                 } else if (data.status === "queue") {
+                    nopixel = true;
                     countdown = Math.ceil(data.nextRealloc / 1000);
                     showColorTable(false);   
                     
@@ -136,6 +144,7 @@
                         localStorage.setItem("matrixsession", data.session);
                     }
                 } else {
+                    nopixel = true;
                     if(requestType === "resend") {
                         localStorage.removeItem("matrixsession");
                     }
@@ -174,7 +183,7 @@
             
             function timerDecrement() {
                 countdown = countdown - 1;
-                document.getElementById("countdownLocation").innerHTML = '<p style="font-size:100px">' + Math.max(countdown, 0) +'</p>';
+                $("#countdownLocation").html = '<p style="font-size:100px">' + Math.max(countdown, 0) +'</p>';
                 if (countdown === -1) {
                     postPixels();
                 }
@@ -189,11 +198,11 @@
             
             function showColorTable(visible){
                 if(visible) {
-                    document.getElementById("colortable").style.display = "block";
-                    document.getElementById("countdowntable").style.display = "none";
+                    $("#colortable").css('display', "block");
+                    $("#countdowntable").css('display', "none");
                 } else {
-                    document.getElementById("colortable").style.display = "none";
-                    document.getElementById("countdowntable").style.display = "block";
+                    $("#colortable").css('display', "none");
+                    $("#countdowntable").css('display', "block");
                 }
             }
             
@@ -214,11 +223,11 @@
             }
             
             function changeColor() {
-                var r = document.getElementById("red").value;
-                var g = document.getElementById("green").value;
-                var b = document.getElementById("blue").value;
-                var colorsheet = document.getElementById("colorRow");
-                colorsheet.style.backgroundColor="rgb(" + r + "," + g + "," + b + ")";
+                var r = $("#red").val();
+                var g = $("#green").val();
+                var b = $("#blue").val();
+                var colorsheet = $("#colorRow");
+                colorsheet.css('background', "rgb(" + r + "," + g + "," + b + ")");
                 var color = {"r": r, "g": g, "b": b};
                 
                 if(color != lastColor) {

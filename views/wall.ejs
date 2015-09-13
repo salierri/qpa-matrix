@@ -43,43 +43,42 @@
                 //!!!!!!SET VERSION HERE!!!!!!!
                 var version = 2;
                 
-                var wall = document.getElementById('wall');
-                var table = document.createElement('table');
-                table.setAttribute('border', '5');
-                table.style.width = '100%';
+                var wall = $('#wall');
+                var table = $('<table>');
+                table.attr('border', '5');
+                table.css('width', '100%');
 
                 for(var i = 0; i <= ymax; i += version) {
-                    var tr = document.createElement('tr');
+                    var tr = $('<tr>');
                     for(var j = 0; j <= xmax; j += version) {
-                        var td = document.createElement('td');
-                        var innerTable = document.createElement('table');
+                        var td = $('<td>');
+                        var innerTable = $('<table>');
                         //innerTable.setAttribute('border', '1');
-                        innerTable.style.width = '100%';
-                        td.appendChild(innerTable);
+                        innerTable.css('width', '100%');
+                        td.append(innerTable);
                         
                         for(var k = 0; k < version; k++) {
-                            var itr = document.createElement('tr');
+                            var itr = $('<tr>');
                             for(var l = 0; l < version; l++) {
-                                var itd = document.createElement('td');
-                                itd.setAttribute('id', (j + l) + "," + (i + k));
-                                itr.appendChild(itd);
+                                var itd = $('<td>');
+                                itd.attr('id', (j + l) + "," + (i + k));
+                                itr.append(itd);
                             }
-                            innerTable.appendChild(itr);
+                            innerTable.append(itr);
                         }
-                        tr.appendChild(td);
+                        tr.append(td);
                     }
-                    table.appendChild(tr);
+                    table.append(tr);
                 }
-                wall.appendChild(table);
+                wall.append(table);
             }
             for(var i = 0; i < data.length; i++) {
                 var color = data[i].color;
                 if(color != null) {
                     var x = data[i].x;
                     var y = data[i].y;
-                    var currentPixel = document.getElementById(x + "," + y);
-                    currentPixel.style.backgroundColor =
-                        "rgb(" + color.r + "," + color.g + "," + color.b + ")";
+                    var currentPixel = $('#' + x + '\\,' + y);
+                    currentPixel.css('background', "rgb(" + color.r + "," + color.g + "," + color.b + ")");
                 }
             }
         }
