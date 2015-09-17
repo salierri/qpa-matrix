@@ -13,6 +13,7 @@ var config = {
     },
     reallocateTimer: 20000,
     timeout: 600000,
+    adminkey: "FHkHAD7BfeIdxQ2j55tldANzO",
     autocolor: {
         interval: 5000,
         volume: 0.2

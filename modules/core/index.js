@@ -9,6 +9,7 @@ var requestlogger = require("../middlewares/requestlogger");
 var _index = require("../../routes/index");
 var _pixels = require("../../routes/pixels");
 var _connection = require("../../routes/connection");
+var _admin = require("../../routes/admin");
 var _reallocate = require("../timed_tasks/reallocate");
 
 exports.createCore = function(dal, config) {
@@ -30,6 +31,7 @@ exports.createCore = function(dal, config) {
     app.use('/', _index(dal));
     app.use('/pixels', _pixels(dal, config, reallocator));
     app.use('/connection', _connection(dal, config, reallocator));
+    app.use('/bfbadmin', _admin(dal, config, reallocator));
 
     http.createServer(app).listen(app.get('port'), function() {
         console.log("Core started on port " + app.get('port'));
