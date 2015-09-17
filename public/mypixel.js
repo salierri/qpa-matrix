@@ -3,6 +3,8 @@ var countdown = 0;
 var lastColor = null;
 var wasChange = false;
 var nopixel = true;
+// !!!!!!SET VERSION HERE!!!!!!!
+var version = 2;
 
 function keepalive() {
     var session = localStorage.getItem("matrixsession");
@@ -155,16 +157,20 @@ function processResponse(response, requestType) {
             $("#colorshow").css('background', "rgb(" + data.pixel.color.r + "," + data.pixel.color.g + "," + data.pixel.color.b + ")");
         }
         
-        //!!!!!!SET VERSION HERE!!!!!!!
-        var pixeldata = pixelFromCoord20(data.pixel);
+        var pixeldata = pixelFromCoord(data.pixel, version);
         $("#pixelLocation").html(
             "A pixeled helye:<br>" + pixeldata.szint  + ". szint<br>"
             + pixeldata.ablak + ". ablak<br>"
             + (pixeldata.bal === 0 ? "bal" : pixeldata.bal === 1 ? "középső" : "jobb") + " "
-            + (pixeldata.felso === 0 ? "felső" : pixeldata.felso === 1 ? "középső" : "alsó") + " pixel"
+            + (pixeldata.felso === 0 ? "felső" : pixeldata.felso === 1 ? "középső" : "alsó") + " " + (version === 2 ? "negyed" : "kilenced")
         );
         
         showColorTable(true);
+        
+        if(data.suggested)
+        {
+           setSuggested(data.suggested);
+        }
         
         if(requestType === "initial") {
             localStorage.setItem("matrixsession", data.session);
@@ -186,6 +192,13 @@ function processResponse(response, requestType) {
     }
 }
 
+function setSuggested(suggested) {
+    var suggestedPixel = ('#suggestedPixel');
+    var suggestedColor = ('#suggestedColor');
+    suggestedPixel.css("display", "block");
+    suggestedColor.css("background", "rgb(" + suggested.r + "," + suggested.g + "," + suggested.b + ")");
+}
+
 function updatePage(response) {
     var data = JSON.parse(response);
     if(data.status === "success") {
@@ -194,15 +207,23 @@ function updatePage(response) {
         } else {
             countdown = Math.ceil(data.nextRealloc / 1000);
         }
+        
         if(data.hasPixel === undefined || data.hasPixel) {
             showColorTable(true);
         } else {
             showColorTable(false);
         }
+        
+        if(data.suggested)
+        {
+           setSuggested(data.suggested);
+        }
     } else if(data.status === "nopixel") {
         countdown = Math.ceil(data.nextRealloc / 1000);
         showColorTable(false);
+        nopixel = true;
     } else {
+        nopixel = true;
         localStorage.removeItem("matrixsession");
         reserve();
     }
@@ -240,19 +261,15 @@ function showColorTable(visible){
     }
 }
 
-function pixelFromCoord20(coord) {
-    var szint = 18 - Math.floor(coord.y / 2);
-    var ablak = Math.floor(coord.x / 2) + 1;
-    var bal = (coord.x % 2) * 2;
-    var felso = (coord.y % 2) * 2;
-    return {"szint": szint, "ablak": ablak, "bal": bal, "felso": felso};
-}
-
-function pixelFromCoord30(coord) {
-    var szint = 18 - Math.floor(coord.y / 3);
-    var ablak = Math.floor(coord.x / 3) + 1;
-    var bal = (coord.x % 3);
-    var felso = (coord.y % 3);
+function pixelFromCoord(coord, version) {
+    var szint = 18 - Math.floor(coord.y / version);
+    var ablak = Math.floor(coord.x / version) + 1;
+    var bal = (coord.x % version);
+    var felso = (coord.y % version);
+    if(version === 2){
+        bal *= 2;
+        felso *= 2;
+    }
     return {"szint": szint, "ablak": ablak, "bal": bal, "felso": felso};
 }
 

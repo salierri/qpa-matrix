@@ -14,15 +14,15 @@
 #sliders{
     margin:5px 0;
 }
-div.slider{
+.slider{
     overflow:hidden;
     margin:5px 0;
 }
-div.colortext{
+.colortext{
     float:left;
     width:20%;
 }
-div.colorchooser{
+.colorchooser{
     float:left;
     width:80%;
 }
@@ -36,7 +36,28 @@ div.colorchooser{
     text-align:center;
 }
 #pixelLocation{
-    
+    text-align:center;
+}
+#suggestedPixel{
+   display:none;
+   overflow:hidden;
+}
+#suggestedmsg{
+    float:left;
+}
+#suggestedColor{
+    min-height:20px;
+    min-width:30px;
+    max-height:20px;
+    max-width:30px;
+    background:#FF00FF;
+}
+#suggestedPixel{
+    overflow:hidden;
+}
+#suggestedColor{
+    float:left;
+    margin:0 5px;
 }
 input[type=range] {
   -webkit-appearance: none;
