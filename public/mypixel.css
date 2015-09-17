@@ -1,0 +1,49 @@
+#container{
+    width:300px;
+    display:block;
+}
+#chooser{
+    display:block;
+}
+#colorshow{
+    background-color:#808080;
+    min-width:300px;
+    min-height:200px;
+    margin:0px;
+}
+#sliders{
+    margin:5px 0;
+}
+div.slider{
+    overflow:hidden;
+    margin:5px 0;
+}
+div.colortext{
+    float:left;
+    width:20%;
+}
+div.colorchooser{
+    float:left;
+    width:80%;
+}
+#countdown{
+    display:none;
+}
+#nopixelmsg{
+    text-align:center;
+}
+#countdownLocation{
+    text-align:center;
+}
+#pixelLocation{
+    
+}
+input[type=range] {
+  -webkit-appearance: none;
+  width:100%;
+  padding:0px;
+  margin:0px;
+}
+.fosbackground{
+    background:#C0C0C0;
+}

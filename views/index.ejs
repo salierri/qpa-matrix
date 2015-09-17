@@ -4,264 +4,50 @@
         <meta charset="utf-8" /> 
         <title>Mátrix pixelem</title>
         <script src="jquery.min.js"></script>
-        <script>
-            var idleTime = 0;
-            var countdown = 0;
-            var lastColor = null;
-            var wasChange = false;
-            
-            function keepalive() {
-                var session = localStorage.getItem("matrixsession");
-                $.ajax({
-                    type: "POST",
-                    url: "/connection/keepalive",
-                    contentType: "application/json",
-                    data: JSON.stringify({"session": session}),
-                    success: function(response) {
-                        updatePage(response);
-                    }
-                });
-            }
-            
-            function postPixels() {
-                //alert(localStorage.getItem("matrixsession"));
-                var session = localStorage.getItem("matrixsession");
-                //alert(session);
-                if(session === null) {
-                    reserve();
-                } else {
-                    $.ajax({
-                        type: "POST",
-                        url: "/pixels",
-                        contentType: "application/json",
-                        data: JSON.stringify({"session": session}),
-                        success: function(response) {
-                            processResponse(response, "resend");
-                    }});
-                }
-            }
-            
-            function dropMe() {
-                var session = localStorage.getItem("matrixsession");
-                localStorage.removeItem("matrixsession");
-                $.ajax({
-                    type: "POST",
-                    url: "/connection/drop",
-                    contentType: "application/json",
-                    data: JSON.stringify({"session": session})
-                });
-            }
-            
-            function reserve() {
-                $.ajax({
-                    type: "GET",
-                    url: "/pixels/reserve",
-                    contentType: "application/json",
-                    success: function(response){
-                        processResponse(response, "initial");
-                }});
-            }
-            
-            function updatePixel(color) {
-                var session = localStorage.getItem("matrixsession");
-                $.ajax({
-                    type: "POST",
-                    url: "/pixels/update",
-                    contentType: "application/json",
-                    data: JSON.stringify({"session": session, "color": color}),
-                    success: function(response) {
-                        updatePage(response);
-                }});
-            }
-            
-            $(document).ready(function () {
-            
-                var idleInterval = setInterval(timerIncrement, 30000);
-                var countdownInterval = setInterval(timerDecrement, 1000);
-                var updateInterval = setInterval(periodicUpdate, 250);
-                
-
-                //Zero the idle timer on mouse movement.
-                $(this).mousemove(function (e) {
-                    if(idleTime === 1) {
-                        keepalive();
-                    }
-                    idleTime = 0;
-                });
-                
-                $(this).keypress(function (e) {
-                    if(idleTime === 1) {
-                        keepalive();
-                    }
-                    idleTime = 0;
-                    
-                });
-
-                /*$(this).swipe(function (e) {
-                    if(idleTime === 1) {
-                        keepalive();
-                    }
-                    idleTime = 0;
-                    
-                });*/
-                
-                $(window).bind('beforeunload', function () {
-                    dropMe();
-                });
-                
-            });
-            
-            function processResponse(response, requestType) {
-                var data = JSON.parse(response);
-                //alert(response);
-                if(data.status === "reserved" || data.status === "haspixel") {
-                    if(!wasChange) {
-                        document.getElementById("red").value = data.pixel.color.r;
-                        document.getElementById("green").value = data.pixel.color.g;
-                        document.getElementById("blue").value = data.pixel.color.b;
-                        document.getElementById("colorRow").style.backgroundColor =
-                            "rgb(" + data.pixel.color.r + "," + data.pixel.color.g + "," + data.pixel.color.b + ")";
-                    }
-                    
-                    //!!!!!!SET VERSION HERE!!!!!!!
-                    var pixeldata = pixelFromCoord20(data.pixel);
-                    document.getElementById("pixelLocation").innerHTML =
-                    "A te pixeled a " + pixeldata.szint  + ". szint "
-                    + pixeldata.ablak + ". ablakának "
-                    + (pixeldata.bal === 0 ? "bal" : pixeldata.bal === 1 ? "középső" : "jobb") + " "
-                    + (pixeldata.felso === 0 ? "felső" : pixeldata.felso === 1 ? "középső" : "alsó") + " pixele.";
-                    
-                    showColorTable(true);
-                    
-                    if(requestType === "initial") {
-                        localStorage.setItem("matrixsession", data.session);
-                    }
-                } else if (data.status === "queue") {
-                    countdown = Math.ceil(data.nextRealloc / 1000);
-                    showColorTable(false);   
-                    
-                    if(requestType === "initial") {
-                        localStorage.setItem("matrixsession", data.session);
-                    }
-                } else {
-                    if(requestType === "resend") {
-                        localStorage.removeItem("matrixsession");
-                    }
-                    reserve();
-                }
-            }
-            
-            function updatePage(response) {
-                var data = JSON.parse(response);
-                if(data.status === "success") {
-                    if(data.nextRealloc === false) {
-                        countdown = -1;
-                    } else {
-                        countdown = Math.ceil(data.nextRealloc / 1000);
-                    }
-                    showColorTable(true);
-                } else if(data.status === "nopixel") {
-                    countdown = Math.ceil(data.nextRealloc / 1000);
-                    showColorTable(false);
-                } else {
-                    localStorage.removeItem("matrixsession");
-                    reserve();
-                }
-            }
-            
-            function timerIncrement() {
-                idleTime = idleTime + 1;
-                if (idleTime === 2) {
-                    alert("Ha nem használod az alkalmazást, elveszhet a pixeled!");
-                }
-            }
-            
-            function timerDecrement() {
-                countdown = countdown - 1;
-                document.getElementById("countdownLocation").innerHTML = '<p style="font-size:100px">' + Math.max(countdown, 0) +'</p>';
-                if (countdown === -1) {
-                    postPixels();
-                }
-            }
-            
-            function periodicUpdate() {
-                if(wasChange) {
-                    updatePixel(lastColor);
-                    wasChange = false;
-                }
-            }
-            
-            function showColorTable(visible){
-                if(visible) {
-                    document.getElementById("colortable").style.display = "block";
-                    document.getElementById("countdowntable").style.display = "none";
-                } else {
-                    document.getElementById("colortable").style.display = "none";
-                    document.getElementById("countdowntable").style.display = "block";
-                }
-            }
-            
-            function pixelFromCoord20(coord) {
-                var szint = 18 - Math.floor(coord.y / 2);
-                var ablak = Math.floor(coord.x / 2) + 1;
-                var bal = (coord.x % 2) * 2;
-                var felso = (coord.y % 2) * 2;
-                return {"szint": szint, "ablak": ablak, "bal": bal, "felso": felso};
-            }
-            
-            function pixelFromCoord30(coord) {
-                var szint = 18 - Math.floor(coord.y / 3);
-                var ablak = Math.floor(coord.x / 3) + 1;
-                var bal = (coord.x % 3);
-                var felso = (coord.y % 3);
-                return {"szint": szint, "ablak": ablak, "bal": bal, "felso": felso};
-            }
-            
-            function changeColor() {
-                var r = document.getElementById("red").value;
-                var g = document.getElementById("green").value;
-                var b = document.getElementById("blue").value;
-                var colorsheet = document.getElementById("colorRow");
-                colorsheet.style.backgroundColor="rgb(" + r + "," + g + "," + b + ")";
-                var color = {"r": r, "g": g, "b": b};
-                
-                if(color != lastColor) {
-                    lastColor = color;
-                    wasChange = true;
-                }
-            }
-            
-        </script>
+        <script src="mypixel.js"></script>
+        <style>
+            @import "mypixel.css";
+        </style>
     </head>
     <body>
-        <table border="0" id="colortable">
-            <tr>
-                <td id="colorRow" colspan="2" height="200" bgColor="#808080"></td>
-            </tr>
-            <tr>
-                <td>piros:</td>
-                <td><input type="range" id="red" min = "0" max="255" step="1" onchange="changeColor()"/></td>
-            </tr>
-            <tr>
-                <td>zöld:</td>
-                <td><input type="range" id="green" min = "0" max="255" onchange="changeColor()"/></td>
-            </tr>
-            <tr>
-                <td>kék:</td>
-                <td><input type="range" id="blue" min = "0" max="255" onchange="changeColor()"/></td>
-            </tr>
-        </table>
-        <table border="0" id="countdowntable">
-            <tr>
-                <td align='center'>Jelenleg nincs szabad pixel</td>
-            </tr>
-            <tr>
-                <td>A pixelek újraosztásáig hátralévő idő:</td>
-            </tr>
-            <tr>
-                <td id="countdownLocation" align='center'></td>
-            </tr>
-        </table>
-        <div id="pixelLocation"></div>
+        <div id="container">
+            <div id="chooser">
+                <div id="colorshow"></div>
+                <div id="sliders">
+                    <div class="slider">
+                        <div class="colortext">
+                            piros:
+                        </div>
+                        <div class="colorchooser">
+                            <input type="range" id="red" min = "0" max="255" step="1" onchange="changeColor()"/>
+                        </div>
+                    </div>
+                    <div class="slider">
+                        <div class="colortext">
+                            zöld:
+                        </div>
+                        <div class="colorchooser">
+                            <input type="range" id="green" min = "0" max="255" step="1" onchange="changeColor()"/>
+                    </div>
+                    </div>
+                    <div class="slider">
+                        <div class="colortext">
+                            kék:
+                        </div>
+                        <div class="colorchooser">
+                            <input type="range" id="blue" min = "0" max="255" step="1" onchange="changeColor()"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="countdown">
+                <div id="nopixelmsg">
+                    Jelenleg nincs szabad pixel.<br>
+                    A pixelek újraosztásáig hátralévő idő:
+                </div>
+                <div id="countdownLocation"></div>
+            </div>
+            <div id="pixelLocation"></div>
+        </div>
     </body>
 </html> 
