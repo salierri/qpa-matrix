@@ -96,6 +96,14 @@
                     idleTime = 0;
                     
                 });
+
+                /*$(this).swipe(function (e) {
+                    if(idleTime === 1) {
+                        keepalive();
+                    }
+                    idleTime = 0;
+                    
+                });*/
                 
                 $(window).bind('beforeunload', function () {
                     dropMe();

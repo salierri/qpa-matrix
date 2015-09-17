@@ -33,7 +33,11 @@ module.exports = function (dal, config, reallocator) {
                                     console.log("Race condition!");
                                 } else {
                                     new dal.User({hasPixel: true, _pixel: doc._id}).save(function (err, user) {
-                                        res.send(JSON.stringify({status: "reserved", pixel: {x: doc.x, y: doc.y, color: {r: r, g: g, b: b}}, session: user._id}));
+                                        var response = {status: "reserved", pixel: {x: doc.x, y: doc.y, color: {r: r, g: g, b: b}}, session: user._id};
+                                        if(typeof doc.suggested.r == "number") {
+                                            response.suggested = doc.suggested;
+                                        }
+                                        res.send(JSON.stringify(response));
                                     })
                                 }
                             });
@@ -68,9 +72,13 @@ module.exports = function (dal, config, reallocator) {
             dal.User.update({_id: req.user._id}, {lastUpdate: Date.now()}, function (err, doc){});
             dal.Pixel.findOne({_id: req.user._pixel}, function (err, doc) {
                 doc.color = color;
-                doc.save(function (err, doc) {
+                doc.save(function (err) {
                     reallocator.when(function (when) {
-                        res.send(JSON.stringify({status: "success", nextRealloc: when}));
+                        var response = {status: "success", nextRealloc: when};
+                        if(typeof doc.suggested.r == "number") {
+                            response.suggested = doc.suggested;
+                        }
+                        res.send(JSON.stringify(response));
                     });
                 });
             });

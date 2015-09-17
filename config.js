@@ -12,7 +12,7 @@ var config = {
         y: 5
     },
     reallocateTimer: 20000,
-    timeout: 60000,
+    timeout: 600000,
     autocolor: {
         interval: 5000,
         volume: 0.2

@@ -28,6 +28,17 @@ module.exports = function(mongoose) {
             b: {
                 type: Number
             }
+        },
+        suggested: {
+            r: {
+                type: Number
+            },
+            g: {
+                type: Number
+            },
+            b: {
+                type: Number
+            }
         }
     });
 
