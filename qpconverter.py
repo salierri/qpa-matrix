@@ -1,14 +1,15 @@
 #Converts a .qp4 file containing a single pixel into javascript code to be interpreted by mongodb
-#Input filename is the first command line argument, output is the second, defaulting to 'suggestion.js'
+#Input filename is the first command line argument, imageId is the second (default: 1), and output file is the third (default: 'suggestion.js')
 
 import sys;
 
 inpath = sys.argv[1]
-outpath = sys.argv[2] if len(sys.argv) > 2 else "suggestion.js"
+imageid = sys.argv[2] if len(sys.argv) > 2 else 1
+outpath = sys.argv[3] if len(sys.argv) > 3 else "suggestion.js"
 outfile = open(outpath, 'w')
 
 def output(x, y, r, g, b):
-	outfile.write("db.pixels.update({x:"+`x`+',y:'+`y`+"},{$set:{suggested:{r:"+`r`+",g:"+`g`+",b:"+`b`+"}}})\n")
+	outfile.write("db.images.update({imageId:"+`imageid`+",x:"+`x`+',y:'+`y`+"},{$set:{suggested:{r:"+`r`+",g:"+`g`+",b:"+`b`+"}}}, true)\n")
 
 def hextorgb(value):
 	return tuple(int(value[i:i + 2], 16) for i in range(0, 6, 2))
