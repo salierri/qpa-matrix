@@ -12,5 +12,9 @@ module.exports = function (dal) {
         res.render('wall', {});
     });
 
+    router.get('/bfbadmin', function (req, res) {
+        res.render('admin', {});
+    });
+    
     return router;
 }
