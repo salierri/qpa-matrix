@@ -52,7 +52,11 @@ module.exports = function (dal, config, reallocator) {
         if(req.user.hasPixel) {
             dal.Pixel.findOne({_id: req.user._pixel}, function (err, pixel) {
                 reallocator.when(function (when) {
-                    res.send(JSON.stringify({status: "haspixel", nextRealloc: when, pixel: {x: pixel.x, y: pixel.y, color: pixel.color}}));
+                    var response = {status: "haspixel", nextRealloc: when, pixel: {x: pixel.x, y: pixel.y, color: pixel.color}};
+                    if(typeof pixel.suggested.r == "number") {
+                        response.suggested = doc.suggested;
+                    }
+                    res.send(JSON.stringify(response));
                 });
             });
         } else {
