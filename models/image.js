@@ -6,30 +6,16 @@ module.exports = function(mongoose) {
                 return new mongoose.Types.ObjectId();
             }
         },
+        imageId: {
+            type: Number
+        },
         x: {
             type: Number
         },
         y: {
             type: Number
         },
-        leftCorner: {
-            type: Boolean
-        },
-        reserved: {
-            type: Boolean
-        },
         color: {
-            r: {
-                type: Number
-            },
-            g: {
-                type: Number
-            },
-            b: {
-                type: Number
-            }
-        },
-        suggested: {
             r: {
                 type: Number
             },
@@ -46,7 +32,7 @@ module.exports = function(mongoose) {
         statics.upsert(this, object, callback);
     };
 
-    var Model = mongoose.model('Pixel', Schema);
+    var Model = mongoose.model('Image', Schema);
 
     return Model;
 };
