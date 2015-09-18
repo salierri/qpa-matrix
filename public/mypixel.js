@@ -6,7 +6,7 @@ var nopixel = true;
 // !!!!!!SET VERSION HERE!!!!!!!
 var version = 2;
 allLog = "";
-loging = false;
+loging = true;
 
 function log(msg) {
     if(loging) {
@@ -292,7 +292,7 @@ function timerIncrement() {
 
 function timerDecrement() {
     countdown = countdown - 1;
-    $("#countdownLocation").html = '<p style="font-size:100px">' + Math.max(countdown, 0) +'</p>';
+    $("#countdownLocation").html('<p style="font-size:100px">' + Math.max(countdown, 0) +'</p>');
     if (countdown === -1) {
         postPixels();
     }
@@ -307,10 +307,10 @@ function periodicUpdate() {
 
 function showColorTable(visible){
     if(visible) {
-        $("#colortable").css('display', "block");
+        $("#chooser").css('display', "block");
         $("#countdown").css('display', "none");
     } else {
-        $("#colortable").css('display', "none");
+        $("#chooser").css('display', "none");
         $("#countdown").css('display', "block");
     }
 }
