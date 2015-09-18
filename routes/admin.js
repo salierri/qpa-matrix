@@ -79,11 +79,11 @@ module.exports = function (dal, config, reallocator) {
     });
 
     router.post('/log', function (req, res) {
-        var log = req.body.log;
+        var frontendlog = req.body.log;
         if(!config.verbose) {
             log.info("Frontend log arrived, omitting.");
         }
-        log.verbose('Frontend log: ' + log);
+        log.verbose('Frontend log: ' + frontendlog);
         res.send(JSON.stringify({status: 'success'}));
     });
 
