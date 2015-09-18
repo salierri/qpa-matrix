@@ -10,11 +10,13 @@ var _index = require("../../routes/index");
 var _pixels = require("../../routes/pixels");
 var _connection = require("../../routes/connection");
 var _admin = require("../../routes/admin");
+var log = require("../log");
 var _reallocate = require("../timed_tasks/reallocate");
 
 exports.createCore = function(dal, config) {
     GLOBAL.dal = dal;
     GLOBAL.config = config;
+    GLOBAL.log = log(dal, config);
     var reallocator = _reallocate(dal, config);
 
     app.set('port', config.port);
@@ -23,7 +25,9 @@ exports.createCore = function(dal, config) {
     app.set('view engine', 'ejs');
 
     //Initial Express setup
-    app.use(requestlogger.logrequest(config));
+    if(config.logrequests) {
+        app.use(requestlogger.logrequest(config));
+    }
     app.use(bodyparser.json());
     app.use(bodyparser.urlencoded({extended: true}));
 

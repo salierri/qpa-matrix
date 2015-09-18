@@ -20,28 +20,33 @@ module.exports = function (dal, config) {
 	}
 
 	reallocator.needRealloc = function () {
+		log.verbose("Realloc needed, current timer: " + reallocator.timer);
 		if(reallocator.timer == -1) {
 			reallocator.timer = Date.now() + config.reallocateTimer;
 			setTimeout(doRealloc, config.reallocateTimer);
 			dal.Task.findOneAndUpdate({name: 'reallocate', next_run: null}, {next_run: Date.now() + config.reallocateTimer}, function (err, doc) {
-				console.log("Reallocate timer started");
+				log.info("Reallocate timer started");
 			});
 		}
 	}
 
 	function doRealloc() {
-		console.log("Reallocation initiated");
+		log.verbose("Reallocation initiated");
 		reallocator.timer = Date.now() + config.reallocateTimer;
 		setTimeout(doRealloc, config.reallocateTimer);
 		dal.Task.findOne({name: 'reallocate'}, function (err, doc) {
 			if(doc.last_run == null || doc.last_run.getTime() < Date.now() + 100) {
 				dal.Task.findOneAndUpdate({name: 'reallocate', last_run: doc.last_run}, {last_run: Date.now(), next_run: Date.now() + config.reallocateTimer}, function (err, doc) {
 					if(doc != null) {
-						console.log("Start reallocating");
+						log.info("Start reallocating");
 						dal.User.find().sort({hasPixel: 1, timer: 1}).exec(function (err, doc) {
+							log.verbose("Users at the start of the reallocation:");
+							if(config.verbose) {
+								console.dir(doc);
+							}
 							var needed = _.countBy(doc, function(n) { return n.hasPixel; } )["false"];
 							var done = _.after(2 * Math.min(needed, doc.length - needed), function () {
-								console.log("Done reallocating");
+								log.info("Done reallocating");
 							});
 							for(var i = 0; i < Math.min(needed, doc.length - needed); i++) {
 								doc[i].hasPixel = true;
@@ -56,6 +61,10 @@ module.exports = function (dal, config) {
 								dal.User.update({_id: doc[needed + i]._id}, doc[needed + i], function (err) {
 									done();
 								});
+							}
+							log.verbose("Users at the end of the reallocation:");
+							if(config.verbose) {
+								console.dir(doc);
 							}
 						});
 					}

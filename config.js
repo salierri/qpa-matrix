@@ -17,6 +17,7 @@ var config = {
     autocolor: {
         interval: 5000,
         volume: 0.2
-    }
+    },
+    verbose: true
 };
 module.exports = config;
