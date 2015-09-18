@@ -4,12 +4,12 @@
 import sys;
 
 inpath = sys.argv[1]
-imageid = sys.argv[2] if len(sys.argv) > 2 else 1
+imageid = int(sys.argv[2]) if len(sys.argv) > 2 else 1
 outpath = sys.argv[3] if len(sys.argv) > 3 else "suggestion.js"
 outfile = open(outpath, 'w')
 
 def output(x, y, r, g, b):
-	outfile.write("db.images.update({imageId:"+`imageid`+",x:"+`x`+',y:'+`y`+"},{$set:{suggested:{r:"+`r`+",g:"+`g`+",b:"+`b`+"}}}, true)\n")
+	outfile.write("db.images.update({imageId:"+`imageid`+",x:"+`x`+',y:'+`y`+"},{$set:{color:{r:"+`r`+",g:"+`g`+",b:"+`b`+"}}}, true)\n")
 
 def hextorgb(value):
 	return tuple(int(value[i:i + 2], 16) for i in range(0, 6, 2))
