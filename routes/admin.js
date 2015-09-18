@@ -53,10 +53,28 @@ module.exports = function (dal, config, reallocator) {
         }
     });
 
+    router.post('/reset', admincheck, function (req, res) {
+        dal.User.find({hasPixel: true}, function (err, doc) {
+            var done = _.after(doc.length, function () {
+                res.send(JSON.stringify({status: 'success'}));
+            });
+            for(var i = 0; i < Math.floor(doc.length / 2); i++) {
+                var swap = doc[i]._pixel;
+                doc[i]._pixel = doc[doc.length - (i + 1)]._pixel;
+                doc[doc.length - (i + 1)]._pixel = swap;
+                dal.User.update({_id: doc[i]._id}, doc[i], function (err) {
+                    done();
+                });
+                dal.User.update({_id: doc[doc.length - (i + 1)]._id}, doc[doc.length - (i + 1)], function (err) {
+                    done();
+                });
+            }
+        });
+    });
+
     router.post('/log', function (req, res) {
         var log = req.body.log;
-        var session = req.body.session;
-        console.log('Frontend log for session ' + session + ":" + log);
+        console.log('Frontend log: ' + log);
         res.send(JSON.stringify({status: 'success'}));
     });
 
