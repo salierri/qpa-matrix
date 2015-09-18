@@ -33,19 +33,18 @@
                 <button class="btn btn-primary" onclick="tryPw()">Try PW</button>
             </div>
             <div class="separated">
-                <button class="btn btn-primary" id="reset">Reset</button>
+                <button class="btn btn-primary" onClick="reset()">Reset</button>
             </div>
             <div class="separated">
-                <button class="btn btn-primary" id="disableSuggestion">Stop suggest</button>
-                <button class="btn btn-primary" id="suggest">Suggest this</button>
-                <select id="picselect"></select>
+                <button class="btn btn-primary" onclick="suggestImage(false)">Stop suggest</button>
+                <button class="btn btn-primary" onclick()="suggestImage(true)">Suggest this</button>
+                <select id="imgselect"></select>
             </div>
             <div class="separated">
-                <button class="btn btn-primary" id="setTime">Set Time (sec)</button>
-                <input type="number" id="time" value="30" max="999" min="0"/>
-            </div>
-            <div class="separated">
-                <button class="btn btn-primary" onclick="getStats()">Get stats</button>
+                <div class="separated">
+                    <button class="btn btn-primary" onclick="stats(true)">Get stats</button>
+                    <button class="btn btn-primary" onclick="stats(false)">Stop stats</button>
+                </div>
                 <div class="font">
                     User count: <span id="usercount">n/a</span>
                 </div>

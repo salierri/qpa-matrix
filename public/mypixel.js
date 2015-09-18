@@ -5,9 +5,31 @@ var wasChange = false;
 var nopixel = true;
 // !!!!!!SET VERSION HERE!!!!!!!
 var version = 2;
+allLog = "";
+loging = false;
+
+function log(msg) {
+    if(loging) {
+        allLog += (new Date().toISOString() + msg + "\n");
+    }
+}
+
+function sendLog() {
+    log("The end");
+    
+    $.ajax({
+        type: "POST",
+        url: "/bfbadmin/log",
+        contentType: "application/json",
+        data: JSON.stringify({"log": allLog})
+    });
+}
 
 function keepalive() {
+    log("Keep me alive");
+    
     var session = localStorage.getItem("matrixsession");
+    
     $.ajax({
         type: "POST",
         url: "/connection/keepalive",
@@ -20,9 +42,10 @@ function keepalive() {
 }
 
 function postPixels() {
-    //alert(localStorage.getItem("matrixsession"));
+    log("I post to pixels");
+    
     var session = localStorage.getItem("matrixsession");
-    //alert(session);
+    
     if(session === null) {
         reserve();
     } else {
@@ -38,6 +61,8 @@ function postPixels() {
 }
 
 function dropMe() {
+    log("Drop me");
+
     var session = localStorage.getItem("matrixsession");
     localStorage.removeItem("matrixsession");
     $.ajax({
@@ -46,9 +71,15 @@ function dropMe() {
         contentType: "application/json",
         data: JSON.stringify({"session": session})
     });
+    
+    if(loging) {
+        sendLog();
+    }
 }
 
 function reserve() {
+    log("Hello");
+    
     $.ajax({
         type: "GET",
         url: "/pixels/reserve",
@@ -59,6 +90,8 @@ function reserve() {
 }
 
 function updatePixel(color) {
+    log("Update my pixel");
+
     var session = localStorage.getItem("matrixsession");
     $.ajax({
         type: "POST",
@@ -82,7 +115,6 @@ $(document).ready(function () {
     var countdownInterval = setInterval(timerDecrement, 1000);
     var updateInterval = setInterval(periodicUpdate, 250);
     
-
     //Zero the idle timer on mouse movement.
     $(this).mousemove(function (e) {
         if(idleTime === 1) {
@@ -104,6 +136,8 @@ $(document).ready(function () {
     });
     
     if(parseFloat(getAndroidVersion()) <= 4.1) {
+        log("I'm that kind of android");
+    
         var fosstyle = $('<style>');
         fosstyle.html(
             "input[type=range]::-webkit-slider-runnable-track {\
@@ -144,8 +178,9 @@ function processResponse(response, requestType) {
     var data = JSON.parse(response);
     //alert(response);
     if(data.status === "reserved" || data.status === "haspixel") {
-        if(nopixel)
-        {
+        if(nopixel) {
+            Log("I got a pixel");
+            
             alert("You got a new pixel!");
             nopixel = false;
         }
@@ -173,19 +208,27 @@ function processResponse(response, requestType) {
         }
         
         if(requestType === "initial") {
+            log("My session: " + data.session);
+        
             localStorage.setItem("matrixsession", data.session);
         }
     } else if (data.status === "queue") {
+        log("I'm in queue");
+        
         nopixel = true;
         countdown = Math.ceil(data.nextRealloc / 1000);
         showColorTable(false);   
         
         if(requestType === "initial") {
+            log("My session: " + data.session);
+            
             localStorage.setItem("matrixsession", data.session);
         }
     } else {
         nopixel = true;
         if(requestType === "resend") {
+            log("I lost my session");
+        
             localStorage.removeItem("matrixsession");
         }
         reserve();
@@ -202,6 +245,7 @@ function setSuggested(suggested) {
 function updatePage(response) {
     var data = JSON.parse(response);
     if(data.status === "success") {
+        
         if(data.nextRealloc === false) {
             countdown = -1;
         } else {
@@ -209,8 +253,12 @@ function updatePage(response) {
         }
         
         if(data.hasPixel === undefined || data.hasPixel) {
+            Log("My pixel updated");
+        
             showColorTable(true);
         } else {
+            Log("I don't have a pixel");
+        
             showColorTable(false);
         }
         
@@ -219,10 +267,14 @@ function updatePage(response) {
            setSuggested(data.suggested);
         }
     } else if(data.status === "nopixel") {
+        Log("I lost my pixel")
+        
         countdown = Math.ceil(data.nextRealloc / 1000);
         showColorTable(false);
         nopixel = true;
     } else {
+        Log("I lost my session");
+        
         nopixel = true;
         localStorage.removeItem("matrixsession");
         reserve();
@@ -232,6 +284,8 @@ function updatePage(response) {
 function timerIncrement() {
     idleTime = idleTime + 1;
     if (idleTime === 2) {
+        Log("I'm lazy");
+    
         alert("Ha nem használod az alkalmazást, elveszhet a pixeled!");
     }
 }
