@@ -1,7 +1,7 @@
 db.users.drop();
 db.pixels.drop();
-for(var i = 0; i < 2; i++) {
-	for(var j = 0; j < 2; j++) {
+for(var i = 0; i < 26; i++) {
+	for(var j = 0; j < 32; j++) {
 		db.pixels.insert({x: i, y: j, reserved: false});
 	}
 }

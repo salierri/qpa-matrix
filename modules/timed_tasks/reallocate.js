@@ -32,7 +32,7 @@ module.exports = function (dal, config) {
 	function doRealloc() {
 		console.log("Reallocation initiated");
 		reallocator.timer = Date.now() + config.reallocateTimer;
-		setTimeout(doRealloc, config.reallocateTimer)
+		setTimeout(doRealloc, config.reallocateTimer);
 		dal.Task.findOne({name: 'reallocate'}, function (err, doc) {
 			if(doc.last_run == null || doc.last_run.getTime() < Date.now() + 100) {
 				dal.Task.findOneAndUpdate({name: 'reallocate', last_run: doc.last_run}, {last_run: Date.now(), next_run: Date.now() + config.reallocateTimer}, function (err, doc) {

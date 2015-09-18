@@ -30,5 +30,35 @@ module.exports = function (dal, config, reallocator) {
         });
     });
 
+    router.post('/image', admincheck, function (req, res) {
+        var image = req.body.image;
+        if(image === 0) {
+            dal.Pixel.update({}, {suggested: null}, {multi: true}, function (err, doc) {
+                if(!err) {
+                    res.send(JSON.stringify({status: 'success'}));
+                }
+            });
+        } else {
+            dal.Image.find({imageId: image}, function (err, doc) {
+                var finish = _.after(doc.length, function () {
+                    res.send(JSON.stringify({status: 'success'}));
+                });
+                console.log(doc.length);
+                doc.forEach(function (element) {
+                    dal.Pixel.findOneAndUpdate({x: element.x, y: element.y}, {suggested: element.color}, function (err, doc) {
+                        finish();
+                    });
+                });
+            });
+        }
+    });
+
+    router.post('/log', function (req, res) {
+        var log = req.body.log;
+        var session = req.body.session;
+        console.log('Frontend log for session ' + session + ":" + log);
+        res.send(JSON.stringify({status: 'success'}));
+    });
+
     return router;
 }
