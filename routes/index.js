@@ -5,6 +5,7 @@ var router = express.Router();
 module.exports = function (dal) {
 
     router.get('/', function (req, res) {
+        log.verbose("Rendering index page");
         res.render('index', {});
     });
     

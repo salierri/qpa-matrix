@@ -8,6 +8,7 @@ var _autocolor = require("./modules/timed_tasks/autocolor");
 
 var data_access_layer = require('./models/dal/mongodb');
 var dal = new data_access_layer(config);
+var log = require("./modules/log");
 
 if (cluster.isMaster) {
     process.on('uncaughtException', function(error) {
@@ -19,6 +20,7 @@ if (cluster.isMaster) {
         }, 3000);
     });
 
+    GLOBAL.log = log(dal, config);
     _kick_users(dal, config);
     _autocolor(dal, config);
 

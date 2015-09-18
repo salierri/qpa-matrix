@@ -10,6 +10,7 @@ module.exports = function (dal, config, reallocator) {
     });
 
     router.get('/stats', admincheck, function (req, res) {
+        log.verbose("Admin request for stats");
         dal.User.count({}, function (err, users) {
             dal.User.count({hasPixel: true}, function (err, usersWithPixels) {
                 dal.User.count({hasPixel: false}, function (err, queueUsers) {
@@ -32,6 +33,7 @@ module.exports = function (dal, config, reallocator) {
 
     router.post('/image', admincheck, function (req, res) {
         var image = req.body.image;
+        log.info("Admin setting suggested image: " + image);
         if(image === 0) {
             dal.Pixel.update({}, {suggested: null}, {multi: true}, function (err, doc) {
                 if(!err) {
@@ -54,7 +56,11 @@ module.exports = function (dal, config, reallocator) {
     });
 
     router.post('/reset', admincheck, function (req, res) {
+        log.info("Admin reset");
         dal.User.find({hasPixel: true}, function (err, doc) {
+            if(doc < 2) {
+                res.send(JSON.stringify({status: 'success'}));
+            }
             var done = _.after(doc.length, function () {
                 res.send(JSON.stringify({status: 'success'}));
             });
@@ -74,7 +80,10 @@ module.exports = function (dal, config, reallocator) {
 
     router.post('/log', function (req, res) {
         var log = req.body.log;
-        console.log('Frontend log: ' + log);
+        if(!config.verbose) {
+            log.info("Frontend log arrived, omitting.");
+        }
+        log.verbose('Frontend log: ' + log);
         res.send(JSON.stringify({status: 'success'}));
     });
 

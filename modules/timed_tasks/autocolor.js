@@ -6,6 +6,7 @@ module.exports = function (dal, config) {
 			if(doc.last_run == null || doc.last_run.getTime() < Date.now() + 100) {
 				dal.Task.findOneAndUpdate({name: 'autocolor', last_run: doc.last_run}, {last_run: Date.now()}, function (err, doc) {
 					if(doc != null) {
+						log.verbose("Autocolor started");
 						dal.Pixel.find({reserved: false}, function (err, doc) {
 							var num = 0;
 							doc.forEach(function (pixel) {
@@ -19,7 +20,7 @@ module.exports = function (dal, config) {
 									});
 								}
 							});
-							console.log("Autocolored " + num + " pixels");
+							log.info("Autocolored " + num + " pixels");
 						});
 					}
 				});
