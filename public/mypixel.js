@@ -179,7 +179,7 @@ function processResponse(response, requestType) {
     //alert(response);
     if(data.status === "reserved" || data.status === "haspixel") {
         if(nopixel) {
-            Log("I got a pixel");
+            log("I got a pixel");
             
             alert("You got a new pixel!");
             nopixel = false;
@@ -253,11 +253,11 @@ function updatePage(response) {
         }
         
         if(data.hasPixel === undefined || data.hasPixel) {
-            Log("My pixel updated");
+            log("My pixel updated");
         
             showColorTable(true);
         } else {
-            Log("I don't have a pixel");
+            log("I don't have a pixel");
         
             showColorTable(false);
         }
@@ -267,13 +267,13 @@ function updatePage(response) {
            setSuggested(data.suggested);
         }
     } else if(data.status === "nopixel") {
-        Log("I lost my pixel")
+        log("I lost my pixel")
         
         countdown = Math.ceil(data.nextRealloc / 1000);
         showColorTable(false);
         nopixel = true;
     } else {
-        Log("I lost my session");
+        log("I lost my session");
         
         nopixel = true;
         localStorage.removeItem("matrixsession");
@@ -284,7 +284,7 @@ function updatePage(response) {
 function timerIncrement() {
     idleTime = idleTime + 1;
     if (idleTime === 2) {
-        Log("I'm lazy");
+        log("I'm lazy");
     
         alert("Ha nem használod az alkalmazást, elveszhet a pixeled!");
     }
