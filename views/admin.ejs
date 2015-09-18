@@ -33,16 +33,12 @@
                 <button class="btn btn-primary" onclick="tryPw()">Try PW</button>
             </div>
             <div class="separated">
-                <button class="btn btn-primary" id="reset">Reset</button>
+                <button class="btn btn-primary" onClick="reset()">Reset</button>
             </div>
             <div class="separated">
-                <button class="btn btn-primary" id="disableSuggestion">Stop suggest</button>
-                <button class="btn btn-primary" id="suggest">Suggest this</button>
-                <select id="picselect"></select>
-            </div>
-            <div class="separated">
-                <button class="btn btn-primary" id="setTime">Set Time (sec)</button>
-                <input type="number" id="time" value="30" max="999" min="0"/>
+                <button class="btn btn-primary" onclick="suggestImage(false)">Stop suggest</button>
+                <button class="btn btn-primary" onclick()="suggestImage(true)">Suggest this</button>
+                <select id="imgselect"></select>
             </div>
             <div class="separated">
                 <div class="separated">
