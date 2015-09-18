@@ -1,3 +1,5 @@
+var statsarecoming = false;
+
 function tryPw() {
     var pw = $('#pw').val();
     $.ajax({
@@ -52,5 +54,26 @@ function showStats(response) {
         retime.html(data.nextRealloc ? data.nextRealloc : "n/a")
     } else {
         alert("incorrect pw");
+        statsarecoming = false;
+    }
+}
+
+function getStatsPeriodic() {
+    if(statsarecoming)
+    {
+        getStats();
+    }
+}
+
+$(document).ready(function () {
+    var idleInterval = setInterval(getStatsPeriodic, 2000);
+});
+
+function stats(startIt) {
+    if(startIt) {
+        getStats();
+        statsarecoming = true;
+    } else {
+        statsarecoming = false;
     }
 }

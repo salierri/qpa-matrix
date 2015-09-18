@@ -45,7 +45,10 @@
                 <input type="number" id="time" value="30" max="999" min="0"/>
             </div>
             <div class="separated">
-                <button class="btn btn-primary" onclick="getStats()">Get stats</button>
+                <div class="separated">
+                    <button class="btn btn-primary" onclick="stats(true)">Get stats</button>
+                    <button class="btn btn-primary" onclick="stats(false)">Stop stats</button>
+                </div>
                 <div class="font">
                     User count: <span id="usercount">n/a</span>
                 </div>
