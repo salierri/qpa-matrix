@@ -83,7 +83,7 @@ module.exports = function (dal, config, reallocator) {
         if(!config.verbose) {
             log.info("Frontend log arrived, omitting.");
         }
-        log.verbose('Frontend log:\n' + frontendlog);
+        log.verbose('Frontend log:\n\n' + frontendlog);
         res.send(JSON.stringify({status: 'success'}));
     });
 

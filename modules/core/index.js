@@ -38,6 +38,6 @@ exports.createCore = function(dal, config) {
     app.use('/bfbadmin', _admin(dal, config, reallocator));
 
     http.createServer(app).listen(app.get('port'), function() {
-        console.log("Core started on port " + app.get('port'));
+        GLOBAL.log.info("Core started on port " + app.get('port'));
     });
 };

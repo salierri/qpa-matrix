@@ -15,6 +15,7 @@ module.exports = function (dal, config) {
 					if(!doc.next_run) {
 						callback(reallocator.timer - Date.now());
 					} else {
+						log.verbose("Reallocator timer waited for async, timer is: " + (doc.next_run.getTime() - Date.now()));
 						callback(doc.next_run.getTime() - Date.now());
 					}
 				});
@@ -24,6 +25,7 @@ module.exports = function (dal, config) {
 				if(!doc.next_run) {
 					callback(reallocator.timer - Date.now());
 				} else {
+					log.verbose("Reallocator timer from DB, timer is: " + (doc.next_run.getTime() - Date.now()));
 					callback(doc.next_run.getTime() - Date.now());
 				}
 			});
@@ -35,15 +37,15 @@ module.exports = function (dal, config) {
 		if(reallocator.timer == -1) {
 			reallocator.timer = -2;
 			dal.Task.findOne({name: 'reallocate'}, function (err, doc) {
-				if(doc.next_run == null) {
+				if(doc.next_run == null || doc.next_run.getTime() < Date.now() - 1000) {
 					reallocator.timer = Date.now() + config.reallocateTimer;
 					setTimeout(doRealloc, config.reallocateTimer);
-					dal.Task.findOneAndUpdate({name: 'reallocate', next_run: null}, {next_run: Date.now() + config.reallocateTimer}, function (err, doc) {
+					dal.Task.findOneAndUpdate({name: 'reallocate', next_run: doc.next_run}, {next_run: Date.now() + config.reallocateTimer}, function (err, doc) {
 						log.info("Reallocate timer started");
 					});
 				} else {
-					reallocator.timer = doc.next_run.getTime() - Date.now();
-					setTimeout(doRealloc, reallocator.timer + 500);
+					reallocator.timer = doc.next_run.getTime();
+					setTimeout(doRealloc, doc.next_run.getTime() + 500);
 				}
 			});
 		}

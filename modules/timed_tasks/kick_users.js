@@ -15,8 +15,11 @@ module.exports = function (dal, config) {
 										log.info(removed + " user kicked");
 									}
 								});
-								dal.Pixel.update({_id: {$in: _.pluck(doc, '_pixel')}}, {reserved: false}, {multi: true}, function (err, doc) {
-									//
+								log.verbose("Freeing pixels: " + JSON.stringify(_.pluck(_.filter(doc, '_pixel'), '_pixel')));
+								dal.Pixel.update({_id: {$in: _.pluck(_.filter(doc, '_pixel'), '_pixel')}}, {reserved: false}, {multi: true}, function (err, doc) {
+									if(err) {
+										log.error("Error during user kicking: " + err);
+									}
 								});
 							}
 						});

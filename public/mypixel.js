@@ -2,7 +2,7 @@ var idleTime = 0;
 var countdown = 0;
 var lastColor = null;
 var wasChange = false;
-var nopixel = true;
+var nopixel = false;
 // !!!!!!SET VERSION HERE!!!!!!!
 var version = 2;
 allLog = "";
