@@ -10,7 +10,7 @@ loging = true;
 
 function log(msg) {
     if(loging) {
-        allLog += (new Date().toISOString() + msg + "\n");
+        allLog += (new Date().toISOString() + "\t" + msg + "\n");
     }
 }
 
