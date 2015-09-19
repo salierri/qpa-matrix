@@ -3,11 +3,22 @@ var _ = require("lodash");
 module.exports = function (dal, config) {
 	var reallocator = {};
 
+	// > 0: real timer, -1: no timer, -2: timer initiated, waiting for async callback
 	reallocator.timer = -1;
 
 	reallocator.when = function (callback) {
 		if(reallocator.timer == -1) {
 			callback(false);
+		} else if(reallocator.timer == -2) {
+			setTimeout(function () {
+				dal.Task.findOne({name: 'reallocate'}, function (err, doc) {
+					if(!doc.next_run) {
+						callback(reallocator.timer - Date.now());
+					} else {
+						callback(doc.next_run.getTime() - Date.now());
+					}
+				});
+			}, 100);
 		} else {
 			dal.Task.findOne({name: 'reallocate'}, function (err, doc) {
 				if(!doc.next_run) {
@@ -22,10 +33,18 @@ module.exports = function (dal, config) {
 	reallocator.needRealloc = function () {
 		log.verbose("Realloc needed, current timer: " + reallocator.timer);
 		if(reallocator.timer == -1) {
-			reallocator.timer = Date.now() + config.reallocateTimer;
-			setTimeout(doRealloc, config.reallocateTimer);
-			dal.Task.findOneAndUpdate({name: 'reallocate', next_run: null}, {next_run: Date.now() + config.reallocateTimer}, function (err, doc) {
-				log.info("Reallocate timer started");
+			reallocator.timer = -2;
+			dal.Task.findOne({name: 'reallocate'}, function (err, doc) {
+				if(doc.next_run == null) {
+					reallocator.timer = Date.now() + config.reallocateTimer;
+					setTimeout(doRealloc, config.reallocateTimer);
+					dal.Task.findOneAndUpdate({name: 'reallocate', next_run: null}, {next_run: Date.now() + config.reallocateTimer}, function (err, doc) {
+						log.info("Reallocate timer started");
+					});
+				} else {
+					reallocator.timer = doc.next_run.getTime() - Date.now();
+					setTimeout(doRealloc, reallocator.timer + 500);
+				}
 			});
 		}
 	}
@@ -35,7 +54,7 @@ module.exports = function (dal, config) {
 		reallocator.timer = Date.now() + config.reallocateTimer;
 		setTimeout(doRealloc, config.reallocateTimer);
 		dal.Task.findOne({name: 'reallocate'}, function (err, doc) {
-			if(doc.last_run == null || doc.last_run.getTime() < Date.now() + 100) {
+			if(doc.last_run == null || doc.last_run.getTime() < (Date.now() - config.reallocateTimer + 100)) {
 				dal.Task.findOneAndUpdate({name: 'reallocate', last_run: doc.last_run}, {last_run: Date.now(), next_run: Date.now() + config.reallocateTimer}, function (err, doc) {
 					if(doc != null) {
 						log.info("Start reallocating");
