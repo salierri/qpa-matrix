@@ -45,7 +45,6 @@ module.exports = function (dal, config, reallocator) {
                 var finish = _.after(doc.length, function () {
                     res.send(JSON.stringify({status: 'success'}));
                 });
-                console.log(doc.length);
                 doc.forEach(function (element) {
                     dal.Pixel.findOneAndUpdate({x: element.x, y: element.y}, {suggested: element.color}, function (err, doc) {
                         finish();

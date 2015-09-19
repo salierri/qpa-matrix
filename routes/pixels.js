@@ -85,7 +85,7 @@ module.exports = function (dal, config, reallocator) {
                 doc.color = color;
                 doc.save(function (err) {
                     reallocator.when(function (when) {
-                        var response = {status: "success", nextRealloc: when};
+                        var response = {status: "success", pixel: {x: doc.x, y: doc.y}, nextRealloc: when};
                         if(typeof doc.suggested.r == "number") {
                             response.suggested = doc.suggested;
                         }

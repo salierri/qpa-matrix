@@ -174,6 +174,16 @@ $(document).ready(function () {
     
 });
 
+function showPixelLocation(pixel) {
+    var pixeldata = pixelFromCoord(pixel, version);
+        $("#pixelLocation").html(
+            "A pixeled helye:<br>" + pixeldata.szint  + ". szint<br>"
+            + pixeldata.ablak + ". ablak<br>"
+            + (pixeldata.bal === 0 ? "bal" : pixeldata.bal === 1 ? "középső" : "jobb") + " "
+            + (pixeldata.felso === 0 ? "felső" : pixeldata.felso === 1 ? "középső" : "alsó") + " " + (version === 2 ? "negyed" : "kilenced")
+        );
+}
+
 function processResponse(response, requestType) {
     var data = JSON.parse(response);
     //alert(response);
@@ -192,14 +202,8 @@ function processResponse(response, requestType) {
             $("#colorshow").css('background', "rgb(" + data.pixel.color.r + "," + data.pixel.color.g + "," + data.pixel.color.b + ")");
         }
         
-        var pixeldata = pixelFromCoord(data.pixel, version);
-        $("#pixelLocation").html(
-            "A pixeled helye:<br>" + pixeldata.szint  + ". szint<br>"
-            + pixeldata.ablak + ". ablak<br>"
-            + (pixeldata.bal === 0 ? "bal" : pixeldata.bal === 1 ? "középső" : "jobb") + " "
-            + (pixeldata.felso === 0 ? "felső" : pixeldata.felso === 1 ? "középső" : "alsó") + " " + (version === 2 ? "negyed" : "kilenced")
-        );
-        
+        showPixelLocation(data.pixel);
+
         showColorTable(true);
         
         if(data.suggested)
@@ -236,13 +240,24 @@ function processResponse(response, requestType) {
 }
 
 function setSuggested(suggested) {
-    var suggestedPixel = ('#suggestedPixel');
-    var suggestedColor = ('#suggestedColor');
-    suggestedPixel.css("display", "block");
-    suggestedColor.css("background", "rgb(" + suggested.r + "," + suggested.g + "," + suggested.b + ")");
+    var suggestedPixel = $('#suggestedPixel');
+    if(suggested) {
+        var suggestedColor = $('#suggestedColor');
+        suggestedPixel.css("display", "block");
+        suggestedColor.css("background", "rgb(" + suggested.r + "," + suggested.g + "," + suggested.b + ")");
+    } else {
+        suggestedPixel.css("display", "none");
+    }
 }
 
 function updatePage(response) {
+    if(nopixel) {
+        log("I got a pixel");
+        
+        alert("You got a new pixel!");
+        nopixel = false;
+    }
+
     var data = JSON.parse(response);
     if(data.status === "success") {
         
@@ -254,7 +269,8 @@ function updatePage(response) {
         
         if(data.hasPixel === undefined || data.hasPixel) {
             log("My pixel updated");
-        
+
+            showPixelLocation(data.pixel);
             showColorTable(true);
         } else {
             log("I don't have a pixel");
@@ -262,9 +278,10 @@ function updatePage(response) {
             showColorTable(false);
         }
         
-        if(data.suggested)
-        {
+        if(data.suggested) {
            setSuggested(data.suggested);
+        } else {
+            setSuggested(false);
         }
     } else if(data.status === "nopixel") {
         log("I lost my pixel")

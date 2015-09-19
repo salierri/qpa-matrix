@@ -58,6 +58,7 @@
 #suggestedColor{
     float:left;
     margin:0 5px;
+    border: 1px solid black;
 }
 input[type=range] {
   -webkit-appearance: none;
