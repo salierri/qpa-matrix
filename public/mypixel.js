@@ -111,7 +111,7 @@ function updatePixel(color) {
 
 $(document).ready(function () {
 
-    var idleInterval = setInterval(timerIncrement, 60000);
+    var idleInterval = setInterval(timerIncrement, 30000);
     var countdownInterval = setInterval(timerDecrement, 1000);
     var updateInterval = setInterval(periodicUpdate, 250);
     

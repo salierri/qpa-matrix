@@ -11,7 +11,7 @@ var config = {
         x: 5,
         y: 5
     },
-    reallocateTimer: 20000,
+    reallocateTimer: 30000,
     timeout: 60000,
     adminkey: "FHkHAD7BfeIdxQ2j55tldANzO",
     autocolor: {

@@ -58,7 +58,7 @@ module.exports = function (dal, config, reallocator) {
                     log.verbose("User " + req.user._id + " asking for its pixel, it is: " + pixel._id);
                     var response = {status: "haspixel", nextRealloc: when, pixel: {x: pixel.x, y: pixel.y, color: pixel.color}};
                     if(typeof pixel.suggested.r == "number") {
-                        response.suggested = doc.suggested;
+                        response.suggested = pixel.suggested;
                     }
                     res.send(JSON.stringify(response));
                 });
