@@ -60,34 +60,42 @@ module.exports = function (dal, config) {
 				dal.Task.findOneAndUpdate({name: 'reallocate', last_run: doc.last_run}, {last_run: Date.now(), next_run: Date.now() + config.reallocateTimer}, function (err, doc) {
 					if(doc != null) {
 						log.info("Start reallocating");
-						dal.User.find().sort({hasPixel: 1, timer: 1}).exec(function (err, doc) {
-							log.verbose("Users at the start of the reallocation:");
-							if(config.verbose) {
-								console.dir(doc);
-							}
-							var needed = _.countBy(doc, function(n) { return n.hasPixel; } )["false"];
-							var done = _.after(2 * Math.min(needed, doc.length - needed), function () {
-								log.info("Done reallocating");
+						dal.Pixel.find({reserved: false}, function (err, empty) {
+							log.verbose("Empty pixels: " + empty.length);
+							dal.User.find().sort({hasPixel: 1, timer: 1}).exec(function (err, doc) {
+								log.verbose("Users at the start of the reallocation:");
+								if(config.verbose) {
+									console.dir(doc);
+								}
+								var needed = _.countBy(doc, function(n) { return n.hasPixel; } )["false"];
+								var done = _.after(2 * Math.min(needed, doc.length - needed + empty.length), function () {
+									log.info("Done reallocating");
+								});
+								for(var i = 0; i < Math.min(needed, doc.length - needed + empty.length); i++) {
+									doc[i].hasPixel = true;
+									doc[i].timer = Date.now();
+									if(i < empty.length) {
+										doc[i]._pixel = empty[i]._id;	
+									} else {
+										var takenFrom = needed + i - empty.length;
+										doc[i]._pixel = doc[takenFrom]._pixel;
+										doc[takenFrom].hasPixel = false;
+										doc[takenFrom]._pixel = null;
+										doc[takenFrom].timer = Date.now();
+										dal.User.update({_id: doc[takenFrom]._id}, doc[takenFrom], function (err) {
+											done();
+										});
+									}
+									dal.User.update({_id: doc[i]._id}, doc[i], function (err) {
+										done();
+									});
+								}
+								log.verbose("Users at the end of the reallocation:");
+								if(config.verbose) {
+									console.dir(doc);
+								}
 							});
-							for(var i = 0; i < Math.min(needed, doc.length - needed); i++) {
-								doc[i].hasPixel = true;
-								doc[i]._pixel = doc[needed + i]._pixel;
-								doc[i].timer = Date.now();
-								doc[needed + i].hasPixel = false;
-								doc[needed + i]._pixel = null;
-								doc[needed + i].timer = Date.now();
-								dal.User.update({_id: doc[i]._id}, doc[i], function (err) {
-									done();
-								});
-								dal.User.update({_id: doc[needed + i]._id}, doc[needed + i], function (err) {
-									done();
-								});
-							}
-							log.verbose("Users at the end of the reallocation:");
-							if(config.verbose) {
-								console.dir(doc);
-							}
-						});
+						})
 					}
 				});
 			}

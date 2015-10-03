@@ -38,6 +38,7 @@ if (cluster.isMaster) {
         process.on('uncaughtException', function(error) {
             console.log("Uncaught exception in worker thread. Notifying master, and terminating.");
             console.log(error);
+            console.log(error.stack);
 
             process.exit(1);
         });
